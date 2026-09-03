@@ -1,0 +1,2588 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Viaggi &amp; Spese — modello vuoto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16232C; --ink-2:#1F313D; --ink-3:#28404F;
+  --paper:#F1EEE6; --paper-2:#E7E1D2; --paper-3:#DCD4BF;
+  --text:#22272B; --text-muted:#6B6558; --text-inverse:#F1EEE6;
+  --gold:#B98A2E; --gold-ink:#7A5A1C;
+  --rust:#9C4A34; --rust-ink:#6E3324;
+  --teal:#2F6B67;
+  --line:#D8D0BC; --line-dark:#33495A;
+  --radius-s:6px; --radius-m:10px; --radius-l:16px;
+  --shadow-card:0 1px 2px rgba(22,35,44,.06), 0 8px 24px -12px rgba(22,35,44,.18);
+  --font-display:'Fraunces', Georgia, serif;
+  --font-body:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:'JetBrains Mono', 'SFMono-Regular', Menlo, monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+#app{min-height:100vh; display:flex; flex-direction:column;}
+img,svg{display:block}
+button{font-family:inherit}
+input,select,textarea{font-family:inherit; font-size:15px;}
+a{color:inherit}
+
+/* ---------- boot / loading ---------- */
+.boot-loading{
+  min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:14px; color:var(--paper-2);
+}
+.boot-mark{
+  font-family:var(--font-display); font-weight:600; font-size:28px; letter-spacing:.04em;
+  border:1px solid var(--line-dark); border-radius:999px; width:64px; height:64px;
+  display:flex; align-items:center; justify-content:center; color:var(--gold);
+  animation:pulse 1.6s ease-in-out infinite;
+}
+.boot-text{font-size:13px; color:#9FB0BA;}
+@keyframes pulse{0%,100%{opacity:.55; transform:scale(1)}50%{opacity:1; transform:scale(1.04)}}
+
+/* ---------- shell / header ---------- */
+.shell{display:flex; flex-direction:column; min-height:100vh;}
+.header{
+  background:var(--ink); color:var(--text-inverse);
+  padding:18px 22px 0;
+  position:sticky; top:0; z-index:20;
+  border-bottom:1px solid var(--line-dark);
+}
+.header-top{
+  display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  flex-wrap:wrap; padding-bottom:14px;
+}
+.brand{display:flex; align-items:baseline; gap:10px;}
+.brand-mark{
+  font-family:var(--font-display); font-weight:600; font-size:15px; letter-spacing:.02em;
+  color:var(--gold); border:1px solid var(--gold-ink); border-radius:6px; padding:2px 7px;
+}
+.brand h1{
+  font-family:var(--font-display); font-weight:600; font-size:22px; margin:0; letter-spacing:.01em;
+}
+.brand p{margin:0; font-size:12.5px; color:#9FB0BA;}
+.header-actions{display:flex; gap:8px; flex-wrap:wrap;}
+
+.tabbar{display:flex; gap:6px; overflow-x:auto; padding-bottom:14px; scrollbar-width:thin;}
+.tabbar::-webkit-scrollbar{height:4px}
+.tabbar::-webkit-scrollbar-thumb{background:var(--line-dark); border-radius:4px}
+.trip-pill{
+  flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; gap:1px;
+  padding:7px 13px; border-radius:999px; border:1px solid var(--line-dark);
+  background:transparent; color:#C8D2D8; cursor:pointer; transition:background .15s, color .15s, border-color .15s;
+  font-size:12.5px; line-height:1.25;
+}
+.trip-pill b{font-family:var(--font-mono); font-size:12px; font-weight:600; color:inherit;}
+.trip-pill span{font-size:11px; color:#8CA0AB; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.trip-pill:hover{border-color:var(--gold);}
+.trip-pill.active{background:var(--gold); border-color:var(--gold); color:var(--ink);}
+.trip-pill.active span{color:#5C4413;}
+.trip-pill.overview-pill{border-style:dashed;}
+.trip-pill.add-pill{color:var(--gold); border-color:var(--gold-ink); font-family:var(--font-mono); font-weight:600;}
+
+/* ---------- buttons ---------- */
+.btn{
+  appearance:none; border:1px solid transparent; border-radius:999px; cursor:pointer;
+  font-weight:600; font-size:13px; padding:8px 16px; display:inline-flex; align-items:center; gap:6px;
+  transition:transform .1s ease, background .15s, border-color .15s, color .15s;
+  white-space:nowrap;
+}
+.btn:active{transform:scale(.97);}
+.btn-gold{background:var(--gold); color:#241A06; border-color:var(--gold);}
+.btn-gold:hover{background:#C9993C;}
+.btn-outline{background:transparent; color:var(--text-inverse); border-color:var(--line-dark);}
+.btn-outline:hover{border-color:var(--gold); color:var(--gold);}
+.btn-outline-dark{background:transparent; color:var(--text); border-color:var(--line);}
+.btn-outline-dark:hover{border-color:var(--teal); color:var(--teal);}
+.btn-ghost{background:transparent; color:var(--text-muted); border-color:transparent; padding:6px 10px;}
+.btn-ghost:hover{color:var(--text);}
+.btn-danger{background:transparent; color:var(--rust); border-color:transparent; padding:6px 8px;}
+.btn-danger:hover{background:#F4E4DF;}
+.btn-sm{padding:5px 11px; font-size:12px;}
+.btn-block{width:100%; justify-content:center;}
+.btn:disabled{opacity:.5; cursor:default;}
+
+/* ---------- main / cards ---------- */
+.main{flex:1; background:var(--paper); padding:22px; display:flex; flex-direction:column; gap:20px;}
+.card{
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius-l);
+  box-shadow:var(--shadow-card); padding:20px;
+}
+.card h2{
+  font-family:var(--font-display); font-weight:600; font-size:18px; margin:0 0 3px;
+}
+.card .card-sub{font-size:12.5px; color:var(--text-muted); margin:0 0 14px;}
+.section-gap{margin-top:6px;}
+
+/* ---------- empty state ---------- */
+.empty-wrap{flex:1; display:flex; align-items:center; justify-content:center; padding:40px 20px;}
+.empty-card{
+  max-width:460px; text-align:center; background:#fff; border:1px solid var(--line);
+  border-radius:var(--radius-l); padding:38px 30px; box-shadow:var(--shadow-card);
+}
+.empty-card .mark{
+  width:52px; height:52px; margin:0 auto 18px; border-radius:50%; background:var(--paper-2);
+  display:flex; align-items:center; justify-content:center; font-family:var(--font-display);
+  color:var(--gold-ink); font-weight:600; font-size:18px;
+}
+.empty-card h2{font-size:21px; margin:0 0 8px;}
+.empty-card p{font-size:13.5px; color:var(--text-muted); line-height:1.55; margin:0 0 22px;}
+.empty-actions{display:flex; flex-direction:column; gap:10px;}
+.empty-hint{font-size:11.5px; color:#9A9282; margin-top:14px; line-height:1.5;}
+
+/* ---------- KPI strip ---------- */
+.kpi-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius-l); overflow:hidden;}
+.kpi{background:#fff; padding:16px 18px;}
+.kpi .kpi-label{font-size:11.5px; color:var(--text-muted); margin-bottom:6px;}
+.kpi .kpi-value{font-family:var(--font-display); font-weight:600; font-size:26px; line-height:1;}
+.kpi .kpi-sub{font-size:11.5px; color:var(--text-muted); margin-top:5px;}
+.kpi.paid .kpi-value{color:var(--ink);}
+.kpi.necessary .kpi-value{color:var(--teal);}
+.kpi.saved .kpi-value{color:var(--rust);}
+
+/* ---------- forms ---------- */
+.form-grid{display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:10px;}
+.form-grid.row2{grid-template-columns:1fr 1fr 1fr 1fr;}
+.field{display:flex; flex-direction:column; gap:4px;}
+.field label{font-size:11.5px; color:var(--text-muted); font-weight:600;}
+.field input[type=text],.field input[type=number],.field input[type=date],.field select,.field textarea{
+  border:1px solid var(--line); border-radius:var(--radius-s); padding:9px 10px; background:#FBFAF7;
+  color:var(--text); outline:none; transition:border-color .15s, background .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal); background:#fff;}
+.check-row{display:flex; align-items:center; gap:8px; padding-top:4px;}
+.check-row input{width:16px; height:16px; accent-color:var(--rust);}
+.check-row label{font-size:12.5px; color:var(--text); cursor:pointer;}
+.form-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:12px;}
+.cat-dot{width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 auto;}
+
+/* ---------- table ---------- */
+.table-wrap{overflow-x:auto;}
+table.expenses{width:100%; border-collapse:collapse; font-size:13px;}
+table.expenses th{
+  text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--text-muted); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--line);
+}
+table.expenses td{padding:9px 10px; border-bottom:1px solid #EFEBE1; vertical-align:middle;}
+table.expenses tr:hover td{background:#FAF8F2;}
+.amount-cell{font-family:var(--font-mono); text-align:right; font-weight:600; white-space:nowrap;}
+.cat-cell{display:flex; align-items:center; gap:7px; white-space:nowrap;}
+.tag-disc{
+  font-size:10px; font-weight:700; color:var(--rust-ink); background:#F4E4DF;
+  border-radius:5px; padding:2px 6px; letter-spacing:.02em;
+}
+.tag-type{font-size:11px; color:var(--text-muted);}
+.row-actions{display:flex; gap:2px; justify-content:flex-end;}
+.empty-row td{text-align:center; color:var(--text-muted); padding:26px 10px; font-size:13px;}
+
+/* ---------- bar chart ---------- */
+.bars{display:flex; flex-direction:column; gap:10px;}
+.bar-row{display:grid; grid-template-columns:150px 1fr 78px; align-items:center; gap:10px; font-size:12.5px;}
+.bar-row .bar-label{display:flex; align-items:center; gap:7px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bar-track{background:var(--paper-2); border-radius:4px; height:9px; overflow:hidden;}
+.bar-fill{height:100%; border-radius:4px;}
+.bar-amount{font-family:var(--font-mono); text-align:right; font-size:12px; color:var(--text-muted);}
+
+/* ---------- receipt ---------- */
+.receipt{
+  background:var(--ink-2); color:var(--text-inverse); border-radius:var(--radius-l);
+  padding:22px 22px 18px; position:relative; border:1px solid var(--line-dark);
+}
+.receipt::before{
+  content:""; position:absolute; left:22px; right:22px; top:0; border-top:1px dashed #47616F;
+}
+.receipt h2{color:var(--text-inverse);}
+.receipt .card-sub{color:#93A5AF;}
+.receipt pre{
+  font-family:var(--font-mono); font-size:13px; line-height:1.7; white-space:pre-wrap;
+  background:var(--ink-3); border-radius:var(--radius-m); padding:14px 16px; margin:14px 0;
+  border:1px solid var(--line-dark); color:#EAE6D9;
+}
+.receipt .form-actions{margin-top:4px;}
+
+/* ---------- overview ---------- */
+.overview-table{width:100%; border-collapse:collapse; font-size:13px;}
+.overview-table th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); padding:8px 10px; border-bottom:1px solid var(--line);}
+.overview-table td{padding:10px; border-bottom:1px solid #EFEBE1;}
+.overview-table td.num{font-family:var(--font-mono); text-align:right;}
+.trend-wrap{overflow-x:auto;}
+
+/* ---------- modal ---------- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(22,35,44,.55); backdrop-filter:blur(2px);
+  display:flex; align-items:center; justify-content:center; z-index:100; padding:16px;
+}
+.modal{
+  background:#fff; border-radius:var(--radius-l); padding:24px; width:100%; max-width:400px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.modal h2{margin-top:0;}
+.modal .field{margin-bottom:12px;}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  background:var(--ink); color:var(--text-inverse); padding:10px 18px; border-radius:999px;
+  font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,.3); z-index:200; opacity:0; pointer-events:none;
+  transition:opacity .2s, transform .2s; display:flex; align-items:center; gap:8px;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(-4px);}
+.toast .dot{width:6px; height:6px; border-radius:50%; background:var(--gold);}
+
+.footnote{font-size:11.5px; color:#9A9282; text-align:center; padding:4px 0 14px;}
+.footnote a{color:var(--teal); text-decoration:underline;}
+
+/* ---------- tab per viaggio ---------- */
+.trip-tabs{display:flex; gap:4px; overflow-x:auto; border-bottom:1px solid var(--line); margin:16px 0 4px; padding-bottom:0;}
+.trip-tab{
+  flex:0 0 auto; background:transparent; border:none; border-bottom:2px solid transparent;
+  padding:9px 14px; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer;
+  transition:color .15s, border-color .15s;
+}
+.trip-tab:hover{color:var(--text);}
+.trip-tab.active{color:var(--teal); border-bottom-color:var(--teal);}
+
+/* ---------- responsive ---------- */
+@media (max-width:760px){
+  .header{padding:14px 14px 0;}
+  .main{padding:14px;}
+  .form-grid,.form-grid.row2{grid-template-columns:1fr 1fr;}
+  .kpi-grid{grid-template-columns:1fr; }
+  .bar-row{grid-template-columns:110px 1fr 64px; font-size:11.5px;}
+  table.expenses thead{display:none;}
+  table.expenses, table.expenses tbody, table.expenses tr, table.expenses td{display:block; width:100%;}
+  table.expenses tr{border-bottom:1px solid var(--line); padding:10px 0; margin-bottom:4px;}
+  table.expenses td{border-bottom:none; padding:3px 0; display:flex; justify-content:space-between; gap:10px;}
+  table.expenses td::before{content:attr(data-label); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:600;}
+  .amount-cell{text-align:right;}
+  .row-actions{justify-content:flex-end;}
+}
+@media (max-width:480px){
+  .form-grid,.form-grid.row2{grid-template-columns:1fr;}
+  .brand h1{font-size:19px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="boot-loading" id="bootLoading">
+    <div class="boot-mark">V·S</div>
+    <div class="boot-text">Apertura del diario di viaggio…</div>
+  </div>
+</div>
+
+<script>
+const SEED_DATA = {"trips": [], "expensesByTrip": {}};
+window.APP_DB_NAME = "ViaggiSpeseDB_Template";
+window.APP_LS_PREFIX = "vt2_template:";
+</script>
+<script>
+/* ============================================================
+   AppStorage — persistenza locale standalone (nessuna dipendenza da Claude)
+   Backend: IndexedDB (primario) -> localStorage (fallback) -> memoria (ultima spiaggia)
+   ============================================================ */
+var AppStorage = (function(){
+  "use strict";
+  var DATA_SCHEMA_VERSION = 4; // v1: modello originale. v2: Momento/Natura/Movimento (natura dedotta, corretto in v3). v3: natura conservativa, contanti da riconciliare. v4: categoryOriginal protetta permanentemente, separata da categoryNormalized.
+  var IDB_VERSION = 2;
+  // Namespace: la versione Personale e la versione Template usano DB/localStorage separati,
+  // così non si mescolano mai anche se aperte nello stesso browser. Impostato dal build (vedi build.py);
+  // se assente (es. sviluppo locale) si usano i nomi storici della versione Personale, per continuità.
+  var DB_NAME = window.APP_DB_NAME || 'ViaggiSpeseDB';
+  var DB_VERSION = IDB_VERSION;
+  var LS_PREFIX = window.APP_LS_PREFIX || 'vt2:';
+
+  var backend = null; // 'indexeddb' | 'localstorage' | 'memory'
+  var dbPromise = null;
+  var memoryStore = { trips: [], expenses: [], meta: {} };
+
+  /* ---------------- rilevamento backend ---------------- */
+  // Alcuni "mini-browser" integrati in altre app (es. l'anteprima documenti di WhatsApp, o
+  // certi WebView ridotti) hanno IndexedDB presente ma non funzionante: indexedDB.open() non
+  // richiama mai né onsuccess né onerror, e resta sospeso per sempre. Senza un timeout esplicito
+  // l'app aspetterebbe una risposta che non arriva mai, bloccata sulla schermata di apertura.
+  function withTimeout(promise, ms){
+    return new Promise(function(resolve, reject){
+      var settled = false;
+      var timer = setTimeout(function(){
+        if (!settled){ settled = true; reject(new Error('Timeout: nessuna risposta entro ' + ms + 'ms')); }
+      }, ms);
+      promise.then(function(v){
+        if (!settled){ settled = true; clearTimeout(timer); resolve(v); }
+      }, function(e){
+        if (!settled){ settled = true; clearTimeout(timer); reject(e); }
+      });
+    });
+  }
+
+  function openIndexedDB(){
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise(function(resolve, reject){
+      if (!window.indexedDB){ reject(new Error('IndexedDB non disponibile')); return; }
+      var req;
+      try{ req = window.indexedDB.open(DB_NAME, DB_VERSION); }
+      catch(e){ reject(e); return; }
+      req.onupgradeneeded = function(ev){
+        var db = ev.target.result;
+        var tx = ev.target.transaction;
+        var tripsStore, expensesStore;
+        if (!db.objectStoreNames.contains('trips')) tripsStore = db.createObjectStore('trips', { keyPath:'id' });
+        else tripsStore = tx.objectStore('trips');
+        if (!db.objectStoreNames.contains('expenses')){
+          expensesStore = db.createObjectStore('expenses', { keyPath:'id' });
+          expensesStore.createIndex('tripId', 'tripId', { unique:false });
+        } else {
+          expensesStore = tx.objectStore('expenses');
+          if (!expensesStore.indexNames.contains('tripId')) expensesStore.createIndex('tripId', 'tripId', { unique:false });
+        }
+        if (!expensesStore.indexNames.contains('nature')) expensesStore.createIndex('nature', 'nature', { unique:false });
+        if (!expensesStore.indexNames.contains('movementType')) expensesStore.createIndex('movementType', 'movementType', { unique:false });
+        if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', { keyPath:'key' });
+      };
+      req.onsuccess = function(ev){ resolve(ev.target.result); };
+      req.onerror = function(){ reject(req.error || new Error('Apertura IndexedDB fallita')); };
+      req.onblocked = function(){ reject(new Error('Apertura IndexedDB bloccata (altra scheda aperta?)')); };
+    });
+    return dbPromise;
+  }
+
+  function testIndexedDB(){
+    return openIndexedDB().then(function(db){
+      return new Promise(function(resolve, reject){
+        try{
+          var tx = db.transaction(['meta'], 'readwrite');
+          tx.objectStore('meta').put({ key:'__probe__', value:1 });
+          tx.oncomplete = function(){ resolve(true); };
+          tx.onerror = function(){ reject(tx.error); };
+        }catch(e){ reject(e); }
+      });
+    });
+  }
+
+  function testLocalStorage(){
+    try{
+      var k = LS_PREFIX + '__probe__';
+      window.localStorage.setItem(k, '1');
+      window.localStorage.removeItem(k);
+      return Promise.resolve(true);
+    }catch(e){ return Promise.reject(e); }
+  }
+
+  function detectBackend(){
+    return withTimeout(testIndexedDB(), 2500)
+      .then(function(){ backend = 'indexeddb'; return backend; })
+      .catch(function(){
+        return withTimeout(testLocalStorage(), 1500)
+          .then(function(){ backend = 'localstorage'; return backend; })
+          .catch(function(){ backend = 'memory'; return backend; });
+      });
+  }
+
+  /* ---------------- helpers IndexedDB ---------------- */
+  function idbTx(storeNames, mode){
+    return openIndexedDB().then(function(db){ return db.transaction(storeNames, mode); });
+  }
+  function idbGetAll(storeName){
+    return idbTx([storeName], 'readonly').then(function(tx){
+      return new Promise(function(resolve, reject){
+        var req = tx.objectStore(storeName).getAll();
+        req.onsuccess = function(){ resolve(req.result || []); };
+        req.onerror = function(){ reject(req.error); };
+      });
+    });
+  }
+  function idbGetByIndex(storeName, indexName, value){
+    return idbTx([storeName], 'readonly').then(function(tx){
+      return new Promise(function(resolve, reject){
+        var req = tx.objectStore(storeName).index(indexName).getAll(value);
+        req.onsuccess = function(){ resolve(req.result || []); };
+        req.onerror = function(){ reject(req.error); };
+      });
+    });
+  }
+  function idbPut(storeName, record){
+    return idbTx([storeName], 'readwrite').then(function(tx){
+      return new Promise(function(resolve, reject){
+        tx.objectStore(storeName).put(record);
+        tx.oncomplete = function(){ resolve(record); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    });
+  }
+  function idbDelete(storeName, id){
+    return idbTx([storeName], 'readwrite').then(function(tx){
+      return new Promise(function(resolve, reject){
+        tx.objectStore(storeName).delete(id);
+        tx.oncomplete = function(){ resolve(true); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    });
+  }
+  function idbDeleteByIndex(storeName, indexName, value){
+    return idbTx([storeName], 'readwrite').then(function(tx){
+      return new Promise(function(resolve, reject){
+        var idx = tx.objectStore(storeName).index(indexName);
+        var req = idx.openCursor(IDBKeyRange.only(value));
+        req.onsuccess = function(ev){
+          var cursor = ev.target.result;
+          if (cursor){ cursor.delete(); cursor.continue(); }
+        };
+        tx.oncomplete = function(){ resolve(true); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    });
+  }
+  function idbClearAll(){
+    return idbTx(['trips','expenses','meta'], 'readwrite').then(function(tx){
+      return new Promise(function(resolve, reject){
+        tx.objectStore('trips').clear();
+        tx.objectStore('expenses').clear();
+        tx.objectStore('meta').clear();
+        tx.oncomplete = function(){ resolve(true); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    });
+  }
+
+  /* ---------------- helpers localStorage ---------------- */
+  function lsRead(key, fallback){
+    try{
+      var raw = window.localStorage.getItem(LS_PREFIX + key);
+      return raw == null ? fallback : JSON.parse(raw);
+    }catch(e){ return fallback; }
+  }
+  function lsWrite(key, value){
+    try{ window.localStorage.setItem(LS_PREFIX + key, JSON.stringify(value)); return true; }
+    catch(e){ return false; }
+  }
+
+  /* ================= API PUBBLICA (async, indipendente dal backend) ================= */
+
+  function init(){
+    return detectBackend().then(function(b){
+      return runStartupMigration().then(function(){ return b; });
+    });
+  }
+  function getBackendName(){ return backend; }
+
+  function getAllTrips(){
+    if (backend === 'indexeddb') return idbGetAll('trips');
+    if (backend === 'localstorage') return Promise.resolve(lsRead('trips', []));
+    return Promise.resolve(memoryStore.trips.slice());
+  }
+  function saveTrip(trip){
+    if (backend === 'indexeddb') return idbPut('trips', trip);
+    if (backend === 'localstorage'){
+      var list = lsRead('trips', []);
+      var i = list.findIndex(function(t){ return t.id === trip.id; });
+      if (i > -1) list[i] = trip; else list.push(trip);
+      lsWrite('trips', list);
+      return Promise.resolve(trip);
+    }
+    var mi = memoryStore.trips.findIndex(function(t){ return t.id === trip.id; });
+    if (mi > -1) memoryStore.trips[mi] = trip; else memoryStore.trips.push(trip);
+    return Promise.resolve(trip);
+  }
+  function deleteTrip(tripId){
+    var p;
+    if (backend === 'indexeddb') p = idbDelete('trips', tripId);
+    else if (backend === 'localstorage'){
+      var list = lsRead('trips', []).filter(function(t){ return t.id !== tripId; });
+      lsWrite('trips', list);
+      p = Promise.resolve(true);
+    } else {
+      memoryStore.trips = memoryStore.trips.filter(function(t){ return t.id !== tripId; });
+      p = Promise.resolve(true);
+    }
+    return p.then(function(){ return deleteExpensesByTrip(tripId); });
+  }
+
+  function getExpenses(tripId){
+    if (backend === 'indexeddb') return idbGetByIndex('expenses', 'tripId', tripId);
+    if (backend === 'localstorage'){
+      var map = lsRead('expenses', {});
+      return Promise.resolve(map[tripId] || []);
+    }
+    return Promise.resolve(memoryStore.expenses.filter(function(e){ return e.tripId === tripId; }));
+  }
+  function getAllExpenses(){
+    if (backend === 'indexeddb') return idbGetAll('expenses');
+    if (backend === 'localstorage'){
+      var map = lsRead('expenses', {});
+      var all = [];
+      Object.keys(map).forEach(function(k){ all = all.concat(map[k]); });
+      return Promise.resolve(all);
+    }
+    return Promise.resolve(memoryStore.expenses.slice());
+  }
+  function saveExpense(expense){
+    if (backend === 'indexeddb') return idbPut('expenses', expense);
+    if (backend === 'localstorage'){
+      var map = lsRead('expenses', {});
+      var list = map[expense.tripId] || [];
+      var i = list.findIndex(function(e){ return e.id === expense.id; });
+      if (i > -1) list[i] = expense; else list.push(expense);
+      map[expense.tripId] = list;
+      lsWrite('expenses', map);
+      return Promise.resolve(expense);
+    }
+    var mi = memoryStore.expenses.findIndex(function(e){ return e.id === expense.id; });
+    if (mi > -1) memoryStore.expenses[mi] = expense; else memoryStore.expenses.push(expense);
+    return Promise.resolve(expense);
+  }
+  function deleteExpense(expenseId){
+    if (backend === 'indexeddb') return idbDelete('expenses', expenseId);
+    if (backend === 'localstorage'){
+      var map = lsRead('expenses', {});
+      Object.keys(map).forEach(function(tid){ map[tid] = map[tid].filter(function(e){ return e.id !== expenseId; }); });
+      lsWrite('expenses', map);
+      return Promise.resolve(true);
+    }
+    memoryStore.expenses = memoryStore.expenses.filter(function(e){ return e.id !== expenseId; });
+    return Promise.resolve(true);
+  }
+  function deleteExpensesByTrip(tripId){
+    if (backend === 'indexeddb') return idbDeleteByIndex('expenses', 'tripId', tripId);
+    if (backend === 'localstorage'){
+      var map = lsRead('expenses', {});
+      delete map[tripId];
+      lsWrite('expenses', map);
+      return Promise.resolve(true);
+    }
+    memoryStore.expenses = memoryStore.expenses.filter(function(e){ return e.tripId !== tripId; });
+    return Promise.resolve(true);
+  }
+
+  function getMeta(key, fallback){
+    if (backend === 'indexeddb'){
+      return idbTx(['meta'],'readonly').then(function(tx){
+        return new Promise(function(resolve){
+          var req = tx.objectStore('meta').get(key);
+          req.onsuccess = function(){ resolve(req.result ? req.result.value : fallback); };
+          req.onerror = function(){ resolve(fallback); };
+        });
+      });
+    }
+    if (backend === 'localstorage') return Promise.resolve(lsRead('meta:'+key, fallback));
+    return Promise.resolve(memoryStore.meta[key] !== undefined ? memoryStore.meta[key] : fallback);
+  }
+  function setMeta(key, value){
+    if (backend === 'indexeddb') return idbPut('meta', { key:key, value:value });
+    if (backend === 'localstorage'){ lsWrite('meta:'+key, value); return Promise.resolve(true); }
+    memoryStore.meta[key] = value;
+    return Promise.resolve(true);
+  }
+
+  /* ================= MIGRAZIONE SCHEMA =================
+     v1: ogni spesa aveva "type" ('essenziale'|'locale'|'generale') e "discretionary" (bool).
+     v2: separa Momento, Natura, Tipo movimento, e aggiunge Preventivo/Consuntivo — ma derivava
+         (erroneamente) la Natura dal vecchio "type", che indicava solo QUANDO/DOVE, non se la
+         spesa fosse indispensabile.
+     v3: correzione conservativa. "type" non implica più una Natura: diventa "Da classificare"
+         a meno che non esista un'informazione storica reale (discretionary=true -> Personale).
+         I vecchi prelievi contante diventano "da riconciliare" invece di essere esclusi in
+         silenzio.
+     v4: separa PERMANENTEMENTE categoryOriginal (mai più sovrascritta, nemmeno dalla
+         classificazione in blocco) da categoryNormalized (usata per statistiche/grafici).
+         Passaggio puramente additivo: non tocca Natura/Momento/Movimento.
+
+     IMPORTANTE — ogni passaggio ha una propria soglia di versione indipendente (vedi "if (v<3)"
+     e "if (...<4)" sotto), applicata SOLO se il record non l'ha già attraversata. Un record che
+     l'utente ha corretto a mano sotto la v3 (quindi già a _schemaVersion 3) salta il passaggio
+     "<3" per sempre: la sua Natura scelta di persona non verrà mai ricalcolata da lì, nemmeno da
+     una futura v5. Solo il passaggio additivo "<4" (o successivi, se puramente additivi) lo
+     riguarda. Questo protegge le correzioni manuali fatte sotto QUALSIASI versione del modello
+     A PARTIRE dalla v3 in poi, perché da quella versione in poi ogni salvataggio manuale timbra
+     _schemaVersion (vedi addOrUpdateExpense in app.js).
+
+     LIMITE NOTO E DOCUMENTATO: le eventuali correzioni manuali fatte sotto la v2 (la versione
+     immediatamente precedente a questa, quando _schemaVersion non esisteva ancora) non sono
+     distinguibili con certezza da una spesa semplicemente auto-migrata e mai toccata: in
+     entrambi i casi il record ha solo "_migratedFromV1: true" e nessun _schemaVersion. Non
+     esiste un modo affidabile per riconoscerle, e non ne inventiamo uno: la migrazione v3
+     tratta quindi ENTRAMBI i casi allo stesso modo (Natura -> "Da classificare", salvo
+     discretionary=true). Se avevi corretto manualmente una spesa sotto la v2, la correzione
+     potrebbe non essere sopravvissuta al passaggio v2->v3. Per questo la finestra di Backup &
+     Ripristino permette di scaricare un backup completo in qualunque momento, ed è consigliato
+     farlo prima di aprire una nuova versione dell'app su dati esistenti. */
+  var CATEGORY_NORMALIZATION_MAP = {
+    'Escursioni & Attrazioni': 'Attrazioni & Escursioni',
+    'Comunicazione (SIM)': 'SIM / Comunicazione',
+    'Vitto Generico (importo unico)': 'Cibo & Ristorazione',
+    'Varie / Altro': 'Altro'
+    // Categorie aggregate come "Shopping & Souvenir" NON vengono spaccate: non è possibile
+    // farlo con sicurezza sui dati storici, quindi restano invariate (originale = normalizzata).
+  };
+  function normalizeCategory(cat){ return CATEGORY_NORMALIZATION_MAP[cat] || cat; }
+
+  function recordSchemaVersion(r){
+    if (r._schemaVersion) return r._schemaVersion;
+    return r.nature === undefined ? 1 : 2; // record pre-esistenti dalla v2, mai ancora timbrati
+  }
+  function isV1Expense(e){ return e && recordSchemaVersion(e) < DATA_SCHEMA_VERSION; }
+  function isV1Trip(t){ return t && t.startDate === undefined; }
+
+  /* migrateExpenseRecord applica SOLO i passaggi che il record non ha ancora attraversato,
+     ciascuno con la propria soglia di versione indipendente. Questo è cruciale: un record già
+     a schemaVersion 3 (compresi quelli corretti A MANO dall'utente sotto la v3, es. una Natura
+     scelta di persona) NON deve mai ripassare dal passaggio "<3" — altrimenti una correzione
+     manuale verrebbe silenziosamente ricalcolata e persa. Ogni passaggio futuro va aggiunto
+     allo stesso modo: mai un blanket "se manca l'ultima versione, rifai tutto da capo". */
+  function migrateExpenseRecord(e){
+    var v = recordSchemaVersion(e);
+    var out = e;
+
+    if (v < 3){
+      var movementType;
+      if (out.category === 'Contanti / Non specificato' || out.movementType === 'prelievo'){
+        movementType = 'da-riconciliare'; // mai escluso in silenzio: va deciso esplicitamente dall'utente
+      } else {
+        movementType = (out.movementType && out.movementType !== 'prelievo') ? out.movementType : 'spesa';
+      }
+      var timing;
+      if (out.type === 'essenziale') timing = 'pre-partenza';
+      else if (out.type === 'locale') timing = 'in-loco';
+      else timing = (out.timing && out.timing !== 'da-classificare') ? out.timing : 'da-classificare';
+      // Natura: SOLO "discretionary=true" è un'informazione storica reale (Personale).
+      // Tutto il resto torna "Da classificare": non deduciamo l'indispensabilità di un volo
+      // o un hotel dal solo fatto che fosse pre-partenza o locale.
+      var nature = out.discretionary === true ? 'personale' : 'da-classificare';
+      out = Object.assign({}, out, {
+        timing: timing, nature: nature, movementType: movementType,
+        includeInReplicable: out.includeInReplicable !== undefined ? out.includeInReplicable : null,
+        plannedAmount: out.plannedAmount !== undefined ? out.plannedAmount : null,
+        _migratedFromV1: true, _schemaVersion: 3
+      });
+    }
+
+    if ((out._schemaVersion || v) < 4){
+      // Passaggio puramente additivo: separa per sempre la categoria storica originale
+      // (mai più sovrascritta, nemmeno dalla classificazione in blocco) dalla categoria
+      // normalizzata usata per statistiche e grafici. Non tocca Natura/Momento/Movimento:
+      // sicuro da eseguire anche su record già corretti a mano sotto la v3.
+      var categoryOriginal = out.categoryOriginal || out.category;
+      out = Object.assign({}, out, {
+        categoryOriginal: categoryOriginal,
+        categoryNormalized: out.categoryNormalized || normalizeCategory(categoryOriginal),
+        _schemaVersion: 4
+      });
+    }
+
+    return out;
+  }
+
+  function migrateTripRecord(trip, tripExpenses){
+    if (!isV1Trip(trip)) return trip;
+    var dates = (tripExpenses||[]).map(function(e){ return e.date; }).filter(Boolean).sort();
+    var destinations = Array.from(new Set((tripExpenses||[]).map(function(e){ return e.destination; }).filter(Boolean)));
+    var hadAggregateData = (tripExpenses||[]).some(function(e){ return e.type === 'generale'; });
+    return Object.assign({}, trip, {
+      startDate: dates.length ? dates[0] : null,
+      endDate: dates.length ? dates[dates.length-1] : null,
+      datesDerived: dates.length > 0, // suggerite dai movimenti: da confermare, non date certe
+      countries: destinations.join(', '),
+      notes: '',
+      completeness: hadAggregateData ? 'solo-principali' : 'completo',
+      _migratedFromV1: true
+    });
+  }
+
+  function migrateDataset(trips, expenses){
+    var expensesByTrip = {};
+    expenses.forEach(function(e){ (expensesByTrip[e.tripId] = expensesByTrip[e.tripId] || []).push(e); });
+    var newTrips = trips.map(function(t){ return migrateTripRecord(t, expensesByTrip[t.id]); });
+    var newExpenses = expenses.map(migrateExpenseRecord);
+    return { trips: newTrips, expenses: newExpenses };
+  }
+
+  function runStartupMigration(){
+    return Promise.all([getAllTrips(), getAllExpenses()]).then(function(res){
+      var trips = res[0], expenses = res[1];
+      var dirtyTrips = trips.filter(isV1Trip);
+      var dirtyExpenses = expenses.filter(isV1Expense);
+      if (!dirtyTrips.length && !dirtyExpenses.length) return false;
+      var migrated = migrateDataset(trips, expenses);
+      var writes = migrated.trips.filter(function(t,i){ return t !== trips[i]; }).map(saveTrip)
+        .concat(migrated.expenses.filter(function(e,i){ return e !== expenses[i]; }).map(saveExpense));
+      return Promise.all(writes).then(function(){ return true; });
+    }).then(function(changed){
+      return setMeta('dataSchemaVersion', DATA_SCHEMA_VERSION).then(function(){ return changed; });
+    });
+  }
+
+
+  function clearAll(){
+    if (backend === 'indexeddb') return idbClearAll();
+    if (backend === 'localstorage'){
+      lsWrite('trips', []); lsWrite('expenses', {});
+      return Promise.resolve(true);
+    }
+    memoryStore = { trips: [], expenses: [], meta: memoryStore.meta };
+    return Promise.resolve(true);
+  }
+
+  /* ================= BACKUP / RIPRISTINO ================= */
+  function exportAll(){
+    return Promise.all([getAllTrips(), getAllExpenses()]).then(function(res){
+      return {
+        app: 'viaggi-e-spese',
+        schemaVersion: DATA_SCHEMA_VERSION,
+        exportedAt: new Date().toISOString(),
+        trips: res[0],
+        expenses: res[1]
+      };
+    });
+  }
+
+  function importAll(data, mode){
+    // mode: 'replace' | 'merge'
+    if (!data || !Array.isArray(data.trips) || !Array.isArray(data.expenses)){
+      return Promise.reject(new Error('Il file non sembra un backup valido di Viaggi e Spese.'));
+    }
+    // La migrazione è sicura da rieseguire sempre: agisce record per record (isV1Expense/isV1Trip)
+    // e lascia invariato ciò che è già alla versione corrente. Così un backup vecchio (v1, v2, v3
+    // o v4) viene sempre riconosciuto e corretto automaticamente all'importazione, in un solo
+    // passaggio chiaro: verifica se serve -> migra una sola volta se serve -> importa il risultato.
+    var needsMigration = data.expenses.some(isV1Expense) || data.trips.some(isV1Trip);
+    var importData = needsMigration ? migrateDataset(data.trips, data.expenses) : data;
+
+    var doImport = function(){
+      if (mode === 'replace'){
+        return clearAll().then(function(){
+          return Promise.all(
+            importData.trips.map(saveTrip).concat(importData.expenses.map(saveExpense))
+          );
+        });
+      }
+      // merge: rigenera id in caso di collisione, per non perdere mai dati esistenti
+      return getAllTrips().then(function(existingTrips){
+        var existingIds = {};
+        existingTrips.forEach(function(t){ existingIds[t.id] = true; });
+        var idMap = {};
+        var tripPromises = importData.trips.map(function(t){
+          var newTrip = Object.assign({}, t);
+          if (existingIds[newTrip.id]){
+            var newId = 'trip_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+            idMap[t.id] = newId;
+            newTrip.id = newId;
+          }
+          return saveTrip(newTrip);
+        });
+        var expPromises = importData.expenses.map(function(e){
+          var newExp = Object.assign({}, e);
+          if (idMap[newExp.tripId]) newExp.tripId = idMap[newExp.tripId];
+          // anche l'id spesa potrebbe collidere fra backup diversi: rigenera sempre in merge
+          newExp.id = 'e_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + Math.floor(Math.random()*1000);
+          return saveExpense(newExp);
+        });
+        return Promise.all(tripPromises.concat(expPromises));
+      });
+    };
+    return doImport().then(function(){ return setMeta('lastImportAt', new Date().toISOString()); })
+      .then(function(){ return { migrated: needsMigration }; });
+  }
+
+  return {
+    DATA_SCHEMA_VERSION: DATA_SCHEMA_VERSION,
+    init: init,
+    getBackendName: getBackendName,
+    getAllTrips: getAllTrips,
+    saveTrip: saveTrip,
+    deleteTrip: deleteTrip,
+    getExpenses: getExpenses,
+    getAllExpenses: getAllExpenses,
+    saveExpense: saveExpense,
+    deleteExpense: deleteExpense,
+    deleteExpensesByTrip: deleteExpensesByTrip,
+    getMeta: getMeta,
+    setMeta: setMeta,
+    clearAll: clearAll,
+    exportAll: exportAll,
+    importAll: importAll,
+    migrateExpenseRecord: migrateExpenseRecord,
+    migrateTripRecord: migrateTripRecord,
+    migrateDataset: migrateDataset,
+    normalizeCategory: normalizeCategory
+  };
+})();
+
+</script>
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   COSTANTI: categorie, momento, natura, movimento
+   ============================================================ */
+// Elenco canonico proposto in fase di aggiunta spesa. Estendibile: l'utente può scrivere
+// una categoria diversa e da quel momento comparirà anche lei tra le opzioni (vedi getKnownCategories).
+var DEFAULT_CATEGORIES = [
+  'Voli', 'Alloggio', 'Trasporti', 'Cibo & Ristorazione', 'Attrazioni & Escursioni',
+  'Assicurazione & Salute', 'Documenti & Visti', 'SIM / Comunicazione', 'Shopping',
+  'Souvenir', 'Regali', 'Commissioni / Cambio valuta', 'Altro'
+];
+// Colori: includo sia le categorie nuove sia i nomi storici (dati migrati dal modello precedente),
+// così ogni spesa passata mantiene un colore stabile invece di ricadere sempre sul colore generico.
+var CATEGORY_COLORS = {
+  'Voli': '#2F6B67', 'Alloggio': '#B98A2E', 'Trasporti': '#4A6FA5',
+  'Cibo & Ristorazione': '#9C4A34', 'Attrazioni & Escursioni': '#748233',
+  'Assicurazione & Salute': '#7A5372', 'Documenti & Visti': '#6B7280',
+  'SIM / Comunicazione': '#5B9C97', 'Shopping': '#D1A54E', 'Souvenir': '#C98A3E',
+  'Regali': '#8A6FA8', 'Commissioni / Cambio valuta': '#7A8FA6', 'Altro': '#8593A6',
+  // nomi storici (pre-migrazione)
+  'Escursioni & Attrazioni': '#748233', 'Comunicazione (SIM)': '#5B9C97',
+  'Shopping & Souvenir': '#D1A54E', 'Contanti / Non specificato': '#9C8F7A',
+  'Vitto Generico (importo unico)': '#B97A5E', 'Varie / Altro': '#8593A6'
+};
+
+var TIMING_OPTIONS = [
+  { value:'pre-partenza', label:'Pre-partenza' },
+  { value:'in-loco', label:'Durante il viaggio / In loco' },
+  { value:'post-viaggio', label:'Post-viaggio' },
+  { value:'da-classificare', label:'Da classificare' }
+];
+var NATURE_OPTIONS = [
+  { value:'essenziale', label:'Essenziale' },
+  { value:'standard', label:'Standard / Normale' },
+  { value:'opzionale', label:'Opzionale' },
+  { value:'personale', label:'Personale / Extra' },
+  { value:'da-classificare', label:'Da classificare' }
+];
+var MOVEMENT_OPTIONS = [
+  { value:'spesa', label:'Spesa reale' },
+  { value:'prelievo', label:'Movimento finanziario / Prelievo (escluso dal costo)' },
+  { value:'da-riconciliare', label:'Contanti da riconciliare / Da verificare' },
+  { value:'rimborso', label:'Rimborso' },
+  { value:'storno', label:'Entrata / Storno' }
+];
+var REPLICABLE_OPTIONS = [
+  { value:'', label:'Automatico (in base alla natura)' },
+  { value:'true', label:'Sì, includi nel Budget Replicabile' },
+  { value:'false', label:'No, escludi dal Budget Replicabile' }
+];
+var COMPLETENESS_OPTIONS = [
+  { value:'completo', label:'Completo' },
+  { value:'parziale', label:'Parziale' },
+  { value:'solo-principali', label:'Solo costi principali' },
+  { value:'non-specificata', label:'Non specificata' }
+];
+
+function labelFor(options, value){
+  var o = options.find(function(x){ return x.value === value; });
+  return o ? o.label : (value || '—');
+}
+function timingLabel(v){ return labelFor(TIMING_OPTIONS, v); }
+function natureLabel(v){ return labelFor(NATURE_OPTIONS, v); }
+function movementLabel(v){ return labelFor(MOVEMENT_OPTIONS, v); }
+function completenessLabel(v){ return labelFor(COMPLETENESS_OPTIONS, v || 'non-specificata'); }
+
+function colorForCategory(cat){
+  if (CATEGORY_COLORS[cat]) return CATEGORY_COLORS[cat];
+  var h = 0;
+  for (var i=0;i<cat.length;i++){ h = cat.charCodeAt(i) + ((h<<5)-h); }
+  var hue = Math.abs(h) % 360;
+  return 'hsl(' + hue + ', 32%, 42%)';
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+function round2(n){ return Math.round((n + Number.EPSILON) * 100) / 100; }
+function fmtEUR(n){
+  n = round2(n || 0);
+  var neg = n < 0; n = Math.abs(n);
+  var parts = n.toFixed(2).split('.');
+  var intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return (neg ? '-' : '') + intPart + ',' + parts[1] + ' €';
+}
+function fmtPct(n){ return (Math.round((n||0) * 1000) / 10).toString().replace('.', ',') + '%'; }
+function fmtDate(iso){
+  if (!iso) return '';
+  var d = new Date(iso + 'T00:00:00');
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' });
+}
+function fmtDateTime(iso){
+  if (!iso) return '';
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' }) + ' alle ' +
+    d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+}
+function uid(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function csvEscape(s){
+  s = String(s == null ? '' : s);
+  if (s.indexOf(';') > -1 || s.indexOf('"') > -1 || s.indexOf('\n') > -1){
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+  return s;
+}
+function downloadTextFile(filename, text, mime){
+  var blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename; a.rel = 'noopener'; a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  // Revoca l'URL e rimuove il link solo DOPO un ritardo generoso: su alcuni browser mobili
+  // il download parte in modo asincrono, e revocare/rimuovere troppo presto può far restare
+  // il download "in sospeso" per sempre invece di completarsi.
+  setTimeout(function(){
+    if (a.parentNode) document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 8000);
+}
+
+/* ============================================================
+   MODELLO DI CALCOLO: Costo Reale, Budget Replicabile, Budget Essenziale
+   ============================================================ */
+// Segno del movimento: un prelievo non è mai un costo (si esclude subito, altrove);
+// un rimborso/storno riduce il costo; una spesa reale lo aumenta.
+function expenseSign(e){
+  if (e.movementType === 'rimborso' || e.movementType === 'storno') return -1;
+  return 1;
+}
+function isPrelievo(e){ return e.movementType === 'prelievo'; }
+
+function isInReplicableDefault(nature){
+  return nature === 'essenziale' || nature === 'standard';
+}
+function isInReplicable(e){
+  if (e.includeInReplicable === true) return true;
+  if (e.includeInReplicable === false) return false;
+  return isInReplicableDefault(e.nature);
+}
+function isInEssenziale(e){ return e.nature === 'essenziale'; }
+function hasActualAmount(e){ return e.amount != null && e.amount !== ''; }
+function displayCategory(e){ return e.categoryNormalized || e.categoryOriginal || e.category; }
+
+function tripDuration(trip){
+  if (!trip || !trip.startDate || !trip.endDate) return null;
+  var d1 = new Date(trip.startDate + 'T00:00:00');
+  var d2 = new Date(trip.endDate + 'T00:00:00');
+  if (isNaN(d1.getTime()) || isNaN(d2.getTime()) || d2 < d1) return null;
+  var nights = Math.round((d2 - d1) / 86400000);
+  return { nights: nights, days: nights + 1 };
+}
+function perUnit(amount, divisor){
+  if (amount == null || !divisor) return null;
+  return round2(amount / divisor);
+}
+
+// Calcola i tre livelli di budget e tutte le ripartizioni per un insieme di spese di un viaggio.
+// Regole importanti:
+//  - "prelievo" e "da-riconciliare" non sono mai un costo finché non vengono risolti esplicitamente;
+//    "da-riconciliare" (tipicamente storico) rende il Costo Reale provvisorio finché non si decide.
+//  - una voce con solo Importo Previsto (nessun Importo Effettivo) NON entra nel Costo Reale:
+//    alimenta solo il Budget Preventivo.
+//  - "Da classificare" non entra né in Budget Replicabile né in Budget Essenziale: se per questo
+//    la cifra risultante è zero mentre esistono voci non classificate, il chiamante deve mostrare
+//    "N/D" (vedi *_known) invece di uno zero che sembrerebbe un dato certo.
+function computeTripBudgets(expenses){
+  var real = 0, replicabile = 0, essenziale = 0;
+  var byCategory = {}, byNature = { essenziale:0, standard:0, opzionale:0, personale:0, 'da-classificare':0 };
+  var byTiming = { 'pre-partenza':0, 'in-loco':0, 'post-viaggio':0, 'da-classificare':0 };
+  var eliminabiliByCategory = {};
+  var prelievoTotale = 0, daRiconciliareTotale = 0, daRiconciliareItems = [];
+  var nonClassificate = 0, nNonClassificate = 0;
+  var nSpesaAttuale = 0, nSpesaClassificata = 0, amtSpesaAttuale = 0, amtSpesaClassificata = 0;
+  var preventivoTotale = 0, consuntivoConPreventivo = 0, nSoloPreventivo = 0;
+  // Totale storico registrato: somma di TUTTI gli importi effettivi mai registrati per questo
+  // viaggio, indipendentemente dal tipo movimento attuale (spesa, prelievo, da riconciliare...).
+  // Serve SOLO come controllo di quadratura per verificare che la migrazione non abbia perso
+  // nulla rispetto al vecchio file: non è il costo definitivo del viaggio.
+  var historicalRecordedTotal = 0;
+
+  expenses.forEach(function(e){
+    if (hasActualAmount(e)) historicalRecordedTotal += Number(e.amount) || 0;
+    var plannedSet = e.plannedAmount != null && e.plannedAmount !== '';
+    if (plannedSet) preventivoTotale += Number(e.plannedAmount) || 0;
+
+    if (e.movementType === 'prelievo'){ prelievoTotale += Number(e.amount)||0; return; }
+    if (e.movementType === 'da-riconciliare'){
+      daRiconciliareTotale += Number(e.amount)||0;
+      daRiconciliareItems.push(e);
+      return;
+    }
+    if (!hasActualAmount(e)){ nSoloPreventivo++; return; } // solo previsto: non ancora un costo reale
+
+    var amt = Number(e.amount) || 0;
+    var signed = expenseSign(e) * amt;
+    real += signed;
+    consuntivoConPreventivo += plannedSet ? amt : 0;
+    var cat = displayCategory(e);
+    byCategory[cat] = (byCategory[cat] || 0) + signed;
+    var nat = e.nature || 'da-classificare';
+    byNature[nat] = (byNature[nat] || 0) + signed;
+    var tim = e.timing || 'da-classificare';
+    byTiming[tim] = (byTiming[tim] || 0) + signed;
+
+    if (e.movementType === 'spesa'){
+      nSpesaAttuale++; amtSpesaAttuale += amt;
+      if (nat !== 'da-classificare'){ nSpesaClassificata++; amtSpesaClassificata += amt; }
+    }
+    if (nat === 'da-classificare'){ nonClassificate += amt; nNonClassificate++; }
+    if (isInEssenziale(e)) essenziale += signed;
+    if (isInReplicable(e)){ replicabile += signed; }
+    else { eliminabiliByCategory[cat] = (eliminabiliByCategory[cat] || 0) + signed; }
+  });
+
+  var eliminabili = real - replicabile;
+  var catArr = Object.keys(byCategory).map(function(c){ return { category:c, total:byCategory[c], pct: real ? byCategory[c]/real : 0 }; })
+    .sort(function(a,b){ return b.total - a.total; });
+  var elimArr = Object.keys(eliminabiliByCategory).map(function(c){ return { category:c, total:eliminabiliByCategory[c] }; })
+    .filter(function(x){ return x.total > 0.001; })
+    .sort(function(a,b){ return b.total - a.total; });
+
+  var pctClassifiedCount = nSpesaAttuale ? nSpesaClassificata/nSpesaAttuale : null;
+  var pctClassifiedAmount = amtSpesaAttuale ? amtSpesaClassificata/amtSpesaAttuale : null;
+  // "*_known": false quando il valore mostrato sarebbe uno zero fuorviante (nulla di classificato
+  // in quel livello, ma esistono voci ancora da classificare) -> il chiamante deve mostrare N/D.
+  var essenzialeKnown = !(Math.abs(essenziale) < 0.005 && nNonClassificate > 0);
+  var replicabileKnown = !(Math.abs(replicabile) < 0.005 && nNonClassificate > 0);
+  var isProvisional = nNonClassificate > 0 || daRiconciliareTotale > 0.005;
+
+  return {
+    real: round2(real), realKnown: true, // il Costo Reale è sempre "noto" sulle voci registrate come spesa reale
+    realIsProvisional: daRiconciliareTotale > 0.005, // ma può salire/scendere in base alla riconciliazione contanti
+    replicabile: round2(replicabile), replicabileKnown: replicabileKnown,
+    essenziale: round2(essenziale), essenzialeKnown: essenzialeKnown,
+    isProvisional: isProvisional,
+    eliminabili: round2(eliminabili), risparmioPct: real ? eliminabili/real : 0,
+    byCategory: catArr, byNature: byNature, byTiming: byTiming,
+    eliminabiliByCategory: elimArr,
+    prelievoTotale: round2(prelievoTotale),
+    historicalRecordedTotal: round2(historicalRecordedTotal),
+    daRiconciliareTotale: round2(daRiconciliareTotale), daRiconciliareItems: daRiconciliareItems,
+    nonClassificate: round2(nonClassificate), countNonClassificate: nNonClassificate,
+    pctClassifiedCount: pctClassifiedCount, pctClassifiedAmount: pctClassifiedAmount,
+    countSoloPreventivo: nSoloPreventivo,
+    preventivoTotale: round2(preventivoTotale), consuntivoConPreventivo: round2(consuntivoConPreventivo),
+    scostamento: round2(consuntivoConPreventivo - preventivoTotale),
+    scostamentoPct: preventivoTotale ? (consuntivoConPreventivo - preventivoTotale) / preventivoTotale : null,
+    count: expenses.length
+  };
+}
+
+function tripFullStats(trip, expenses){
+  var b = computeTripBudgets(expenses);
+  var dur = tripDuration(trip);
+  var datesProvisional = !dur || trip.datesDerived === true;
+  var people = trip.people || 1;
+  var incompleteData = trip.completeness === 'parziale' || trip.completeness === 'solo-principali';
+  return Object.assign({}, b, {
+    duration: dur, datesProvisional: datesProvisional, incompleteData: incompleteData,
+    realPerPerson: perUnit(b.real, people),
+    replicabilePerPerson: b.replicabileKnown ? perUnit(b.replicabile, people) : null,
+    essenzialePerPerson: b.essenzialeKnown ? perUnit(b.essenziale, people) : null,
+    realPerPersonPerDay: dur ? perUnit(b.real / people, dur.days) : null,
+    replicabilePerPersonPerDay: (dur && b.replicabileKnown) ? perUnit(b.replicabile / people, dur.days) : null,
+    essenzialePerPersonPerDay: (dur && b.essenzialeKnown) ? perUnit(b.essenziale / people, dur.days) : null,
+    dataQuality: computeDataQuality(trip, b, datesProvisional)
+  });
+}
+
+// Sintesi "a colpo d'occhio": AFFIDABILE / PROVVISORIO / INCOMPLETO, con le ragioni.
+function computeDataQuality(trip, b, datesProvisional){
+  var reasons = [];
+  if (trip.completeness === 'parziale' || trip.completeness === 'solo-principali'){
+    reasons.push('Dati storici ' + completenessLabel(trip.completeness).toLowerCase());
+  }
+  if (b.countNonClassificate > 0) reasons.push(b.countNonClassificate + ' spese da classificare');
+  if (b.daRiconciliareTotale > 0.005) reasons.push(fmtEUR(b.daRiconciliareTotale) + ' di contanti da riconciliare');
+  if (datesProvisional && trip.startDate) reasons.push('date del viaggio da confermare');
+  if (b.countSoloPreventivo > 0) reasons.push(b.countSoloPreventivo + ' voci ancora solo a preventivo');
+
+  var level;
+  if (trip.completeness === 'parziale' || trip.completeness === 'solo-principali') level = 'incompleto';
+  else if (reasons.length) level = 'provvisorio';
+  else level = 'affidabile';
+  return { level: level, reasons: reasons };
+}
+function dataQualityLabel(level){
+  return level === 'affidabile' ? 'Affidabile' : (level === 'provvisorio' ? 'Provvisorio' : 'Incompleto');
+}
+function dataQualityColor(level){
+  return level === 'affidabile' ? 'var(--teal)' : (level === 'provvisorio' ? 'var(--gold-ink)' : 'var(--rust)');
+}
+
+function generateSummaryText(trip, stats){
+  var lines = [];
+  var dur = stats.duration;
+  var header = trip.name + ' ' + trip.year + (dur ? ' — ' + dur.days + ' giorni' + (stats.datesProvisional?' (da confermare)':'') + ', ' : ' — ') + trip.people + ' person' + (trip.people===1?'a':'e') + '.';
+  lines.push(header);
+
+  var l2 = 'Abbiamo speso complessivamente ' + fmtEUR(stats.real) + (stats.realIsProvisional ? ' (provvisorio, in attesa di riconciliare i contanti)' : '') +
+    ', pari a ' + fmtEUR(stats.realPerPerson) + ' a persona';
+  l2 += dur ? (' e ' + fmtEUR(stats.realPerPersonPerDay) + ' a persona al giorno' + (stats.datesProvisional?' (date da confermare)':'') + '.') : '.';
+  lines.push(l2);
+
+  if (!stats.replicabileKnown || !stats.essenzialeKnown){
+    lines.push('Il Budget Replicabile e il Budget Essenziale non sono ancora calcolabili: nessuna spesa è stata classificata per natura. Vai su Spese per classificarle.');
+  } else {
+    if (stats.eliminabili > 0.01){
+      lines.push('Eliminando spese opzionali e personali (souvenir, shopping, extra), il costo realistico per replicare il viaggio è stato circa ' +
+        fmtEUR(stats.replicabile) + (stats.isProvisional?' (provvisorio)':'') + ', cioè ' + fmtEUR(stats.replicabilePerPerson) + ' a persona.');
+    }
+    if (stats.essenziale > 0.01 && stats.essenziale < stats.real - 0.01){
+      lines.push('Un budget più essenziale sarebbe stato circa ' + fmtEUR(stats.essenziale) + (stats.isProvisional?' (provvisorio)':'') + '.');
+    }
+  }
+  if (stats.byCategory.length){
+    var top = stats.byCategory.slice(0, 5).filter(function(c){ return c.total > 0; })
+      .map(function(c){ return c.category + ' ' + fmtPct(c.pct); }).join(', ');
+    if (top) lines.push('Le categorie principali sono state: ' + top + '.');
+  }
+  if (stats.replicabileKnown && stats.eliminabili > 0.01){
+    lines.push('Circa ' + fmtEUR(stats.eliminabili) + ' del totale erano spese opzionali o personali.');
+  }
+  if (stats.countNonClassificate > 0){
+    lines.push('Nota: ' + stats.countNonClassificate + ' spese (' + fmtEUR(stats.nonClassificate) + ') non sono ancora classificate: i budget sopra sono provvisori.');
+  }
+  if (stats.daRiconciliareTotale > 0.005){
+    lines.push('Nota: ' + fmtEUR(stats.daRiconciliareTotale) + ' di contanti/prelievi storici sono ancora da riconciliare e non sono inclusi nel Costo Reale.');
+  }
+  return lines.join('\n');
+}
+
+function expensesToCSV(expenses){
+  var headers = ['Data','Destinazione','Descrizione','Categoria originale','Categoria normalizzata','Momento','Natura','Movimento','Importo Previsto EUR','Importo EUR'];
+  var rows = expenses.map(function(e){
+    return [e.date||'', e.destination||'', csvEscape(e.description), csvEscape(e.categoryOriginal||e.category), csvEscape(displayCategory(e)),
+      timingLabel(e.timing), natureLabel(e.nature), movementLabel(e.movementType),
+      e.plannedAmount != null ? Number(e.plannedAmount).toFixed(2) : '', hasActualAmount(e) ? Number(e.amount).toFixed(2) : ''];
+  });
+  return [headers.join(';')].concat(rows.map(function(r){ return r.join(';'); })).join('\n');
+}
+
+/* ============================================================
+   STATO
+   ============================================================ */
+var state = {
+  loading: true,
+  backend: null,
+  trips: [],
+  expensesByTrip: {},
+  currentTripId: null,
+  view: 'trip', // 'trip' | 'overview' | 'classify'
+  tripTab: 'dashboard', // 'dashboard' | 'spese' | 'budget' | 'statistiche' | 'riepilogo' | 'impostazioni'
+  editingExpenseId: null,
+  editingTripId: null,
+  showTripModal: false,
+  tripModalMode: 'new',
+  showBackupModal: false,
+  importMode: 'merge',
+  lastBackupAt: null,
+  tableCategoryFilter: '',
+  tableNatureFilter: '',
+  overviewSort: { key:'year', dir:'asc' },
+  classifyFilters: { tripId:'', category:'', description:'', timing:'', nature:'' },
+  classifySelected: {},
+  classifyBulk: { nature:'', timing:'', category:'', includeInReplicable:'' },
+  toast: null
+};
+
+function getKnownCategories(){
+  var set = {};
+  DEFAULT_CATEGORIES.forEach(function(c){ set[c] = true; });
+  Object.keys(state.expensesByTrip).forEach(function(tid){
+    (state.expensesByTrip[tid]||[]).forEach(function(e){ var c = e.categoryOriginal||e.category; if (c) set[c] = true; });
+  });
+  return Object.keys(set);
+}
+function getKnownNormalizedCategories(){
+  var set = {};
+  DEFAULT_CATEGORIES.forEach(function(c){ set[c] = true; });
+  Object.keys(state.expensesByTrip).forEach(function(tid){
+    (state.expensesByTrip[tid]||[]).forEach(function(e){ var c = displayCategory(e); if (c) set[c] = true; });
+  });
+  return Object.keys(set);
+}
+
+/* ============================================================
+   CARICAMENTO INIZIALE (AppStorage: IndexedDB -> localStorage -> memoria)
+   ============================================================ */
+function loadAll(){
+  // Rete di sicurezza: se qualunque cosa nella catena di avvio impiega troppo (non solo
+  // l'apertura del DB, già protetta a livello di AppStorage, ma anche una transazione lenta o
+  // bloccata in un ambiente insolito), dopo 8 secondi mostriamo comunque l'app invece di
+  // lasciarla bloccata sulla schermata di caricamento all'infinito.
+  var bootWatchdog = setTimeout(function(){
+    if (!state.loading) return;
+    state.backend = 'memory';
+    state.trips = [];
+    state.loading = false;
+    render();
+    showToast('Il caricamento è andato in timeout: continuo in modalità provvisoria (senza salvataggio). Se hai aperto questo file dall\'anteprima di un\'altra app (es. WhatsApp), riaprilo invece con Chrome o Safari.');
+  }, 8000);
+  function stopWatchdog(){ clearTimeout(bootWatchdog); }
+
+  AppStorage.init().then(function(backend){
+    stopWatchdog();
+    state.backend = backend;
+    return Promise.all([AppStorage.getAllTrips(), AppStorage.getAllExpenses(), AppStorage.getMeta('lastBackupAt', null), AppStorage.getMeta('onboarded', false)]);
+  }).then(function(res){
+    var trips = res[0], allExpenses = res[1], lastBackupAt = res[2], onboarded = res[3];
+    state.lastBackupAt = lastBackupAt;
+    state.expensesByTrip = {};
+    allExpenses.forEach(function(e){
+      if (!state.expensesByTrip[e.tripId]) state.expensesByTrip[e.tripId] = [];
+      state.expensesByTrip[e.tripId].push(e);
+    });
+    Object.keys(state.expensesByTrip).forEach(function(tid){
+      state.expensesByTrip[tid].sort(function(a,b){ return (b._addedAt||0) - (a._addedAt||0); });
+    });
+
+    if (!trips.length && !onboarded && SEED_DATA.trips && SEED_DATA.trips.length){
+      state.trips = [];
+      importSeedData(true);
+      AppStorage.setMeta('onboarded', true);
+      state.loading = false;
+      render();
+      return;
+    }
+
+    state.trips = trips;
+    state.currentTripId = trips.length ? trips[trips.length-1].id : null;
+    state.loading = false;
+    render();
+  }).catch(function(err){
+    stopWatchdog();
+    state.backend = 'memory';
+    state.loading = false;
+    render();
+    showToast('Impossibile accedere allo storage del browser. I dati di questa sessione non verranno salvati.');
+  });
+}
+
+/* ============================================================
+   AZIONI
+   ============================================================ */
+function showToast(msg){
+  state.toast = msg;
+  render();
+  setTimeout(function(){ state.toast = null; var t = document.getElementById('toast'); if (t) t.classList.remove('show'); }, 2800);
+}
+
+function importSeedData(silent){
+  var seedTrips = SEED_DATA.trips;
+  var seedExp = SEED_DATA.expensesByTrip;
+  var existingIds = {};
+  state.trips.forEach(function(t){ existingIds[t.id] = true; });
+  var saves = [];
+  seedTrips.forEach(function(t){
+    if (!existingIds[t.id]){
+      var migratedTrip = AppStorage.migrateTripRecord(t, seedExp[t.id] || []);
+      state.trips.push(migratedTrip);
+      var list = (seedExp[t.id] || []).map(function(e){
+        var withTrip = Object.assign({ tripId: t.id, _addedAt: Date.parse(t.createdAt||'')||0 }, e);
+        return AppStorage.migrateExpenseRecord(withTrip);
+      });
+      state.expensesByTrip[t.id] = list;
+      saves.push(AppStorage.saveTrip(migratedTrip));
+      list.forEach(function(e){ saves.push(AppStorage.saveExpense(e)); });
+    }
+  });
+  state.currentTripId = state.trips.length ? state.trips[state.trips.length-1].id : null;
+  state.view = 'trip'; state.tripTab = 'dashboard';
+  Promise.all(saves).then(function(){
+    AppStorage.setMeta('dataSchemaVersion', AppStorage.DATA_SCHEMA_VERSION);
+    if (!silent) render();
+  });
+  if (!silent) showToast('Importati 7 viaggi di esempio (2018-2026).');
+}
+
+function defaultTripFields(){
+  return { startDate:null, endDate:null, countries:'', notes:'', completeness:'non-specificata' };
+}
+
+function createOrUpdateTrip(data){
+  var trip;
+  if (state.tripModalMode === 'edit' && state.editingTripId){
+    trip = state.trips.find(function(x){ return x.id === state.editingTripId; });
+    if (trip){
+      // se l'utente conferma/imposta le date da qui, non sono più "suggerite dai movimenti": sono confermate
+      var confirmingDates = data.startDate && data.endDate;
+      Object.assign(trip, data, confirmingDates ? { datesDerived:false } : {});
+    }
+  } else {
+    trip = Object.assign({ id: uid('trip'), currency:'EUR', createdAt: new Date().toISOString(), datesDerived:false }, defaultTripFields(), data);
+    state.trips.push(trip);
+    state.expensesByTrip[trip.id] = [];
+    state.currentTripId = trip.id;
+    state.view = 'trip'; state.tripTab = 'dashboard';
+  }
+  state.showTripModal = false;
+  state.editingTripId = null;
+  AppStorage.saveTrip(trip);
+  render();
+}
+
+function deleteTrip(tripId){
+  if (!confirm('Eliminare questo viaggio e tutte le sue spese? L\'azione non è reversibile (puoi comunque ripristinarlo da un backup, se ne hai esportato uno).')) return;
+  state.trips = state.trips.filter(function(t){ return t.id !== tripId; });
+  delete state.expensesByTrip[tripId];
+  if (state.currentTripId === tripId){
+    state.currentTripId = state.trips.length ? state.trips[state.trips.length-1].id : null;
+  }
+  AppStorage.deleteTrip(tripId);
+  render();
+}
+
+function defaultExpenseFields(){
+  // Natura NON parte da "Standard": deve essere una scelta esplicita, per non gonfiare
+  // involontariamente il Budget Replicabile con voci mai davvero classificate.
+  return { timing:'in-loco', nature:'da-classificare', movementType:'spesa', includeInReplicable:null, plannedAmount:null, amount:null, note:'' };
+}
+
+function addOrUpdateExpense(tripId, data){
+  var list = state.expensesByTrip[tripId] || (state.expensesByTrip[tripId] = []);
+  var record;
+  if (state.editingExpenseId){
+    var idx = list.findIndex(function(e){ return e.id === state.editingExpenseId; });
+    if (idx > -1){
+      // categoryOriginal NON è mai presente in "data" quando si modifica una spesa già
+      // esistente (vedi il gestore submit): resta quindi quella già salvata su list[idx],
+      // permanentemente. Solo categoryNormalized arriva esplicitamente da "data" se l'utente
+      // l'ha cambiata nel form. L'utente sta modificando di persona: la classificazione
+      // diventa "sua" e non verrà più toccata da future correzioni automatiche della
+      // migrazione (vedi storage.js).
+      record = Object.assign({}, list[idx], data, { _schemaVersion: AppStorage.DATA_SCHEMA_VERSION });
+      list[idx] = record;
+    }
+    state.editingExpenseId = null;
+  } else {
+    // nuova spesa: categoryOriginal e categoryNormalized arrivano già entrambe valorizzate
+    // dal gestore submit (la seconda inizializzata alla normalizzazione della prima).
+    record = Object.assign({ id: uid('e'), tripId: tripId, _addedAt: Date.now(), _schemaVersion: AppStorage.DATA_SCHEMA_VERSION }, defaultExpenseFields(), data);
+    list.unshift(record);
+  }
+  if (record) AppStorage.saveExpense(record);
+  render();
+}
+
+function deleteExpense(tripId, expId){
+  var list = state.expensesByTrip[tripId] || [];
+  state.expensesByTrip[tripId] = list.filter(function(e){ return e.id !== expId; });
+  if (state.editingExpenseId === expId) state.editingExpenseId = null;
+  AppStorage.deleteExpense(expId);
+  render();
+}
+
+// Risolve una voce "da riconciliare": 'prelievo' (solo movimento, resta fuori dal costo)
+// oppure 'spesa' (rappresenta un costo reale non registrato altrove, entra nel Costo Reale
+// con Natura ancora da classificare, mai dedotta automaticamente).
+function reconcileCash(tripId, expId, resolution){
+  var list = state.expensesByTrip[tripId] || [];
+  var idx = list.findIndex(function(e){ return e.id === expId; });
+  if (idx === -1) return;
+  var record = Object.assign({}, list[idx], { movementType: resolution, _schemaVersion: AppStorage.DATA_SCHEMA_VERSION });
+  list[idx] = record;
+  AppStorage.saveExpense(record);
+  render();
+}
+
+/* ============================================================
+   BACKUP & RIPRISTINO
+   ============================================================ */
+function doExportBackup(){
+  AppStorage.exportAll().then(function(data){
+    var stamp = new Date().toISOString().slice(0,10);
+    downloadTextFile('Backup_ViaggiSpese_' + stamp + '.json', JSON.stringify(data, null, 2), 'application/json');
+    var now = new Date().toISOString();
+    state.lastBackupAt = now;
+    AppStorage.setMeta('lastBackupAt', now);
+    showToast('Backup scaricato. Conservalo per trasferire i dati su un altro computer.');
+    render();
+  });
+}
+
+function doExportAllCSV(){
+  var all = [];
+  state.trips.slice().sort(function(a,b){ return a.year-b.year; }).forEach(function(t){
+    (state.expensesByTrip[t.id]||[]).forEach(function(e){
+      all.push(Object.assign({}, e, { description: t.year + ' · ' + t.name + ' — ' + e.description }));
+    });
+  });
+  var csv = expensesToCSV(all);
+  downloadTextFile('Tutti_i_viaggi_' + new Date().toISOString().slice(0,10) + '.csv', csv, 'text/csv;charset=utf-8');
+}
+
+function handleImportFile(file){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var data;
+    try{ data = JSON.parse(reader.result); }
+    catch(e){ showToast('Il file selezionato non è un JSON valido.'); return; }
+    AppStorage.importAll(data, state.importMode).then(function(result){
+      return Promise.all([AppStorage.getAllTrips(), AppStorage.getAllExpenses()]).then(function(res){ return { res: res, result: result }; });
+    }).then(function(wrap){
+      var res = wrap.res;
+      state.trips = res[0];
+      state.expensesByTrip = {};
+      res[1].forEach(function(e){
+        if (!state.expensesByTrip[e.tripId]) state.expensesByTrip[e.tripId] = [];
+        state.expensesByTrip[e.tripId].push(e);
+      });
+      state.currentTripId = state.trips.length ? state.trips[state.trips.length-1].id : null;
+      state.showBackupModal = false;
+      state.view = 'trip'; state.tripTab = 'dashboard';
+      render();
+      var migratedNote = wrap.result && wrap.result.migrated ? ' (backup precedente, migrato automaticamente al nuovo formato)' : '';
+      showToast((state.importMode === 'replace' ? 'Backup ripristinato: dati precedenti sostituiti.' : 'Backup unito ai dati esistenti.') + migratedNote);
+    }).catch(function(err){
+      showToast('Import non riuscito: ' + (err && err.message ? err.message : 'file non valido.'));
+    });
+  };
+  reader.readAsText(file);
+}
+
+/* ============================================================
+   PANORAMICA GENERALE (multi-viaggio)
+   ============================================================ */
+function tripsOverview(){
+  return state.trips.map(function(t){
+    var stats = tripFullStats(t, state.expensesByTrip[t.id] || []);
+    var pctCat = function(name){ var c = stats.byCategory.find(function(x){ return x.category === name; }); return c ? c.pct : 0; };
+    return Object.assign({ id:t.id, year:t.year, name:t.name, people:t.people, completeness:t.completeness }, stats, {
+      pctExtra: stats.risparmioPct,
+      pctCibo: pctCat('Cibo & Ristorazione') + pctCat('Vitto Generico (importo unico)'),
+      pctAlloggio: pctCat('Alloggio'),
+      pctVoli: pctCat('Voli')
+    });
+  });
+}
+function sortOverviewRows(rows){
+  var key = state.overviewSort.key, dir = state.overviewSort.dir === 'asc' ? 1 : -1;
+  return rows.slice().sort(function(a,b){
+    var av = a[key], bv = b[key];
+    if (key === 'days'){ av = a.duration ? a.duration.days : -1; bv = b.duration ? b.duration.days : -1; }
+    if (typeof av === 'string') return dir * av.localeCompare(bv);
+    return dir * ((av||0) - (bv||0));
+  });
+}
+
+/* ============================================================
+   RENDER: elementi comuni
+   ============================================================ */
+function selectOptions(options, selected){
+  return options.map(function(o){
+    return '<option value="' + escapeHtml(o.value) + '"' + (o.value===selected?' selected':'') + '>' + escapeHtml(o.label) + '</option>';
+  }).join('');
+}
+function renderCategoryOptions(selected){
+  var known = getKnownCategories();
+  var opts = known.map(function(c){
+    return '<option value="' + escapeHtml(c) + '"' + (c===selected?' selected':'') + '>' + escapeHtml(c) + '</option>';
+  }).join('');
+  var isCustom = selected && known.indexOf(selected) === -1;
+  opts += '<option value="__custom__"' + (isCustom?' selected':'') + '>Altra categoria (scrivi tu)…</option>';
+  return opts;
+}
+
+function renderCategoryOptionsPlain(selected){
+  // variante senza l'opzione "Altra categoria (scrivi tu)": usata dove non c'è un campo
+  // di testo libero collegato. Offre le categorie NORMALIZZATE note (non quelle originali):
+  // usata dal selettore "Imposta Categoria normalizzata" della classificazione in blocco.
+  return getKnownNormalizedCategories().map(function(c){
+    return '<option value="' + escapeHtml(c) + '"' + (c===selected?' selected':'') + '>' + escapeHtml(c) + '</option>';
+  }).join('');
+}
+
+function renderHeader(){
+  var pills = state.trips.slice().sort(function(a,b){ return a.year-b.year; }).map(function(t){
+    var active = (state.view==='trip' && state.currentTripId===t.id) ? ' active' : '';
+    return '<button class="trip-pill' + active + '" data-action="select-trip" data-id="' + t.id + '">' +
+      '<b>' + t.year + '</b><span>' + escapeHtml(t.name) + '</span></button>';
+  }).join('');
+  var overviewActive = state.view === 'overview' ? ' active' : '';
+  var backendLabel = state.backend === 'indexeddb' ? 'IndexedDB' : (state.backend === 'localstorage' ? 'localStorage' : 'memoria (non persistente)');
+  var classifyActive = state.view === 'classify' ? ' active' : '';
+  return (
+    '<div class="header">' +
+      '<div class="header-top">' +
+        '<div class="brand">' +
+          '<span class="brand-mark">V·S</span>' +
+          '<div><h1>Viaggi &amp; Spese</h1><p>Salvataggio locale · ' + backendLabel + '</p></div>' +
+        '</div>' +
+        '<div class="header-actions">' +
+          '<button class="btn btn-outline btn-sm" data-action="open-backup-modal">Backup &amp; Ripristino</button>' +
+          '<button class="btn btn-outline btn-sm" data-action="open-new-trip">+ Nuovo viaggio</button>' +
+        '</div>' +
+      '</div>' +
+      (state.trips.length ? (
+      '<div class="tabbar">' +
+        pills +
+        '<button class="trip-pill overview-pill' + overviewActive + '" data-action="view-overview">Panoramica generale</button>' +
+        '<button class="trip-pill overview-pill' + classifyActive + '" data-action="open-bulk-classify">Classifica spese</button>' +
+      '</div>') : '') +
+    '</div>'
+  );
+}
+
+function renderStorageWarning(){
+  if (state.backend !== 'memory') return '';
+  return (
+    '<div class="card" style="border-color:var(--rust); background:#FBF1EE;">' +
+      '<h2 style="color:var(--rust-ink);">Attenzione: nessun salvataggio persistente disponibile</h2>' +
+      '<p class="card-sub" style="color:var(--rust-ink);">Il tuo browser non consente né IndexedDB né localStorage in questa modalità (capita ad esempio in navigazione privata). Tutto quello che inserisci resterà solo in questa scheda: <b>esporta un backup prima di chiudere</b>, oppure riapri con una finestra normale (non privata).</p>' +
+    '</div>'
+  );
+}
+
+function renderEmptyState(){
+  var hasSeed = SEED_DATA.trips && SEED_DATA.trips.length > 0;
+  return (
+    '<div class="empty-wrap"><div class="empty-card">' +
+      '<div class="mark">V·S</div>' +
+      '<h2>Nessun viaggio ancora</h2>' +
+      '<p>Crea il tuo primo viaggio per iniziare a registrare le spese. Le statistiche si aggiornano da sole man mano che aggiungi voci.</p>' +
+      '<div class="empty-actions">' +
+        '<button class="btn btn-gold btn-block" data-action="open-new-trip">Crea il tuo primo viaggio</button>' +
+        (hasSeed ? '<button class="btn btn-outline-dark btn-block" data-action="import-seed">Carica dati di esempio (7 viaggi 2018–2026)</button>' : '') +
+        '<button class="btn btn-ghost btn-block" data-action="open-backup-modal">Ho già un backup: importalo</button>' +
+      '</div>' +
+      '<div class="empty-hint">I dati restano salvati automaticamente in questo browser, su questo computer. Usa "Backup &amp; Ripristino" per portarli altrove o metterli al sicuro.</div>' +
+    '</div></div>'
+  );
+}
+
+function renderBackupModal(){
+  if (!state.showBackupModal) return '';
+  var lastBackupText = state.lastBackupAt ? fmtDateTime(state.lastBackupAt) : 'mai eseguito';
+  return (
+    '<div class="modal-overlay" data-action="close-modal-bg">' +
+      '<div class="modal" style="max-width:460px;">' +
+        '<h2>Backup &amp; Ripristino</h2>' +
+        '<p class="card-sub">I dati sono salvati automaticamente in questo browser (' + (state.backend||'—') + '). Per portarli su un altro computer, cambiare browser, o essere certo di non perderli mai, usa il backup manuale.</p>' +
+
+        '<div style="background:var(--paper); border-radius:var(--radius-m); padding:12px 14px; margin:14px 0;">' +
+          '<div style="font-size:12px; color:var(--text-muted);">Ultimo backup scaricato</div>' +
+          '<div style="font-weight:600;">' + escapeHtml(lastBackupText) + '</div>' +
+        '</div>' +
+
+        '<div class="form-actions" style="justify-content:flex-start; flex-wrap:wrap;">' +
+          '<button class="btn btn-gold btn-sm" data-action="export-backup">Scarica backup completo (.json)</button>' +
+          '<button class="btn btn-outline-dark btn-sm" data-action="export-all-csv">Scarica tutti i viaggi (.csv)</button>' +
+        '</div>' +
+
+        '<hr style="border:none; border-top:1px solid var(--line); margin:18px 0;">' +
+
+        '<div><label style="font-size:11.5px; color:var(--text-muted); font-weight:600;">Ripristina da backup (.json)</label></div>' +
+        '<div style="display:flex; gap:14px; margin:8px 0 10px; font-size:12.5px;">' +
+          '<label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="radio" name="importMode" value="merge"' + (state.importMode==='merge'?' checked':'') + '> Unisci ai dati esistenti</label>' +
+          '<label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="radio" name="importMode" value="replace"' + (state.importMode==='replace'?' checked':'') + '> Sostituisci tutto</label>' +
+        '</div>' +
+        '<input type="file" accept="application/json,.json" id="backupFileInput">' +
+        '<p class="card-sub" style="margin-top:8px;">"Unisci" non cancella mai nulla: se un viaggio del backup ha lo stesso ID di uno già presente, viene aggiunto come copia separata invece di sovrascriverlo. Anche i backup creati con una versione precedente dell\'app (senza Momento/Natura) vengono riconosciuti e aggiornati automaticamente al nuovo formato.</p>' +
+
+        '<div class="form-actions"><button type="button" class="btn btn-ghost btn-sm" data-action="close-modal">Chiudi</button></div>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function renderTripModal(){
+  if (!state.showTripModal) return '';
+  var editing = state.tripModalMode==='edit' ? state.trips.find(function(t){ return t.id===state.editingTripId; }) : null;
+  var d = Object.assign({ name:'', year:new Date().getFullYear(), people:2 }, defaultTripFields(), editing || {});
+  return (
+    '<div class="modal-overlay" data-action="close-modal-bg">' +
+      '<div class="modal" style="max-width:480px;">' +
+        '<h2>' + (editing ? 'Modifica viaggio' : 'Nuovo viaggio') + '</h2>' +
+        '<form id="tripForm">' +
+          '<div class="field"><label>Nome viaggio</label><input type="text" name="name" placeholder="Es. Giappone in autunno" value="' + escapeHtml(d.name) + '" required></div>' +
+          '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
+            '<div class="field"><label>Anno</label><input type="number" name="year" value="' + d.year + '" required></div>' +
+            '<div class="field"><label>Numero di persone</label><input type="number" name="people" min="1" value="' + d.people + '" required></div>' +
+          '</div>' +
+          '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
+            '<div class="field"><label>Data partenza</label><input type="date" name="startDate" value="' + escapeHtml(d.startDate||'') + '"></div>' +
+            '<div class="field"><label>Data ritorno</label><input type="date" name="endDate" value="' + escapeHtml(d.endDate||'') + '"></div>' +
+          '</div>' +
+          '<div class="field"><label>Destinazioni / Paesi</label><input type="text" name="countries" placeholder="Es. Giappone, Corea" value="' + escapeHtml(d.countries||'') + '"></div>' +
+          '<div class="field"><label>Completezza dati</label><select name="completeness">' + selectOptions(COMPLETENESS_OPTIONS, d.completeness) + '</select></div>' +
+          '<div class="field"><label>Note</label><textarea name="notes" rows="2" placeholder="Note libere su questo viaggio">' + escapeHtml(d.notes||'') + '</textarea></div>' +
+          '<div class="form-actions">' +
+            '<button type="button" class="btn btn-ghost btn-sm" data-action="close-modal">Annulla</button>' +
+            '<button type="submit" class="btn btn-gold btn-sm">' + (editing ? 'Salva' : 'Crea viaggio') + '</button>' +
+          '</div>' +
+        '</form>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+/* ============================================================
+   VISTA VIAGGIO: tab e sezioni
+   ============================================================ */
+var TRIP_TABS = [
+  { key:'dashboard', label:'Dashboard' },
+  { key:'spese', label:'Spese' },
+  { key:'budget', label:'Budget' },
+  { key:'statistiche', label:'Statistiche' },
+  { key:'riepilogo', label:'Riepilogo' },
+  { key:'impostazioni', label:'Impostazioni' }
+];
+
+function renderTripTabs(trip){
+  return '<div class="trip-tabs">' + TRIP_TABS.map(function(t){
+    var active = state.tripTab === t.key ? ' active' : '';
+    return '<button class="trip-tab' + active + '" data-action="select-trip-tab" data-tab="' + t.key + '">' + t.label + '</button>';
+  }).join('') + '</div>';
+}
+
+function renderDataQualityBadge(dq){
+  return '<span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:' + dataQualityColor(dq.level) + '1A; color:' + dataQualityColor(dq.level) + '; border:1px solid ' + dataQualityColor(dq.level) + ';">' +
+    dataQualityLabel(dq.level).toUpperCase() + '</span>';
+}
+function renderDataQualityCard(dq){
+  if (dq.level === 'affidabile') return '';
+  return (
+    '<div class="card" style="border-color:' + dataQualityColor(dq.level) + ';">' +
+      '<div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;"><h2 style="margin:0;">Qualità dati</h2>' + renderDataQualityBadge(dq) + '</div>' +
+      '<ul style="margin:6px 0 0; padding-left:18px; font-size:13px; color:var(--text-muted);">' +
+        dq.reasons.map(function(r){ return '<li>' + escapeHtml(r) + '</li>'; }).join('') +
+      '</ul>' +
+    '</div>'
+  );
+}
+
+function renderNonClassifiedBanner(stats){
+  if (!stats.countNonClassificate) return '';
+  var pct = stats.pctClassifiedAmount != null ? fmtPct(stats.pctClassifiedAmount) : 'N/D';
+  return (
+    '<div class="card" style="border-color:var(--gold); background:#FBF4E4; margin-bottom:16px;">' +
+      '<h2 style="color:var(--gold-ink); font-size:15px;">‼ ' + stats.countNonClassificate + ' spese da classificare</h2>' +
+      '<p class="card-sub" style="color:#6B5017;">Rappresentano ' + fmtEUR(stats.nonClassificate) + '. Classificazione budget: <b>' + pct + '</b> dell\'importo. Finché restano "Da classificare" non entrano né nel Budget Replicabile né nel Budget Essenziale, che restano provvisori. ' +
+      '<button class="btn btn-outline-dark btn-sm" style="margin-left:6px;" data-action="filter-non-classified">Mostrale in Spese</button> ' +
+      '<button class="btn btn-gold btn-sm" data-action="open-bulk-classify">Classifica in blocco</button></p>' +
+    '</div>'
+  );
+}
+
+function renderCashReconcileBanner(stats, tripId){
+  if (!stats.daRiconciliareTotale) return '';
+  return (
+    '<div class="card" style="border-color:var(--rust); background:#FBF1EE; margin-bottom:16px;">' +
+      '<h2 style="color:var(--rust-ink); font-size:15px;">‼ Contanti da riconciliare: ' + fmtEUR(stats.daRiconciliareTotale) + '</h2>' +
+      '<p class="card-sub" style="color:#6E3324;">Non sono inclusi nel Costo Reale finché non decidi, voce per voce, se sono solo movimento di contante (da escludere) o spese non registrate altrove (da includere). Il Costo Reale di questo viaggio è quindi <b>provvisorio</b>.</p>' +
+      '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius-m); overflow:hidden; margin:12px 0;">' +
+        '<div style="background:#fff; padding:10px 14px;"><div style="font-size:11px; color:var(--text-muted);">Costo Reale provvisorio</div><div style="font-weight:700; font-family:var(--font-display); font-size:17px;">' + fmtEUR(stats.real) + '</div></div>' +
+        '<div style="background:#fff; padding:10px 14px;"><div style="font-size:11px; color:var(--text-muted);">Contanti da riconciliare</div><div style="font-weight:700; font-family:var(--font-display); font-size:17px; color:var(--rust);">' + fmtEUR(stats.daRiconciliareTotale) + '</div></div>' +
+        '<div style="background:#fff; padding:10px 14px;"><div style="font-size:11px; color:var(--text-muted);">Totale storico registrato *</div><div style="font-weight:700; font-family:var(--font-display); font-size:17px;">' + fmtEUR(stats.historicalRecordedTotal) + '</div></div>' +
+      '</div>' +
+      '<p class="card-sub" style="font-size:11px;">* Somma di tutto ciò che è stato registrato per questo viaggio nel file originale, come controllo di quadratura — non è il costo definitivo. Dopo la riconciliazione, il Costo Reale potrà essere diverso: alcuni prelievi potrebbero risultare semplici movimenti già rappresentati dalle spese dettagliate.</p>' +
+      '<div class="table-wrap"><table class="expenses"><thead><tr><th>Data</th><th>Descrizione</th><th style="text-align:right;">Importo</th><th>Decisione</th></tr></thead><tbody>' +
+        stats.daRiconciliareItems.map(function(e){
+          return '<tr><td data-label="Data">' + (fmtDate(e.date)||'—') + '</td><td data-label="Descrizione">' + escapeHtml(e.description) + '</td>' +
+            '<td data-label="Importo" class="amount-cell">' + fmtEUR(e.amount) + '</td>' +
+            '<td data-label="Decisione"><span class="row-actions" style="justify-content:flex-start;">' +
+              '<button class="btn btn-outline-dark btn-sm" data-action="reconcile-cash" data-id="' + e.id + '" data-resolution="prelievo">Solo movimento</button>' +
+              '<button class="btn btn-outline-dark btn-sm" data-action="reconcile-cash" data-id="' + e.id + '" data-resolution="spesa">Includi nel costo</button>' +
+            '</span></td></tr>';
+        }).join('') +
+      '</tbody></table></div>' +
+    '</div>'
+  );
+}
+
+function kpiValueBlock(label, value, known, subHtml, provisional, color){
+  var displayValue = known ? fmtEUR(value) : 'N/D';
+  var tag = provisional && known ? ' <span style="font-size:10px; font-weight:700; color:var(--gold-ink); vertical-align:middle;">PROVVISORIO</span>' : '';
+  return (
+    '<div class="kpi"' + (color?' style="color:'+color+';"':'') + '><div class="kpi-label">' + label + tag + '</div>' +
+    '<div class="kpi-value"' + (!known?' style="color:var(--text-muted); font-size:19px;"':'') + '>' + displayValue + '</div>' +
+    '<div class="kpi-sub">' + (known ? subHtml : 'nessuna spesa ancora classificata') + '</div></div>'
+  );
+}
+
+function renderKpiRow(stats){
+  var dur = stats.duration;
+  var datesTag = stats.datesProvisional && dur ? ' <span style="font-size:10px; font-weight:700; color:var(--gold-ink);">DA CONFERMARE</span>' : '';
+  return (
+    '<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">' +
+      kpiValueBlock('Costo Reale' + (stats.realIsProvisional?' <span style="font-size:10px; font-weight:700; color:var(--rust);">PROVVISORIO</span>':''), stats.real, true,
+        fmtEUR(stats.realPerPerson) + ' a persona' + (dur ? ' · ' + fmtEUR(stats.realPerPersonPerDay) + '/persona/giorno' + datesTag : ''), false) +
+      kpiValueBlock('Budget Replicabile', stats.replicabile, stats.replicabileKnown,
+        stats.replicabileKnown ? (fmtEUR(stats.replicabilePerPerson) + ' a persona' + (dur && stats.replicabilePerPersonPerDay!=null ? ' · ' + fmtEUR(stats.replicabilePerPersonPerDay) + '/persona/giorno' : '')) : '', stats.isProvisional) +
+      kpiValueBlock('Budget Essenziale', stats.essenziale, stats.essenzialeKnown,
+        stats.essenzialeKnown ? (fmtEUR(stats.essenzialePerPerson) + ' a persona' + (dur && stats.essenzialePerPersonPerDay!=null ? ' · ' + fmtEUR(stats.essenzialePerPersonPerDay) + '/persona/giorno' : '')) : '', stats.isProvisional) +
+    '</div>' +
+    '<div class="kpi-grid" style="grid-template-columns:repeat(2,1fr); margin-top:1px;">' +
+      '<div class="kpi"><div class="kpi-label">Spese eliminabili</div><div class="kpi-value" style="color:var(--rust);">' + (stats.replicabileKnown ? fmtEUR(stats.eliminabili) : 'N/D') + '</div><div class="kpi-sub">' + (stats.replicabileKnown ? fmtPct(stats.risparmioPct) + ' del Costo Reale' : 'in attesa di classificazione') + '</div></div>' +
+      '<div class="kpi"><div class="kpi-label">Durata</div><div class="kpi-value">' + (dur ? dur.days + ' giorni' : 'N/D') + '</div><div class="kpi-sub">' + (dur ? (dur.nights + ' notti' + datesTag) : 'imposta le date in Impostazioni') + '</div></div>' +
+    '</div>'
+  );
+}
+
+function renderDashboardTab(trip, stats){
+  var completenessNote = trip.completeness && trip.completeness !== 'completo' ?
+    '<div class="card" style="border-color:var(--line-dark); background:#F3F1EA;"><p class="card-sub" style="margin:0;">Completezza dati: <b>' + completenessLabel(trip.completeness) + '</b>. I confronti con altri viaggi vanno letti tenendo conto di questo.</p></div>' : '';
+  return (
+    '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;"><div></div>' + renderDataQualityBadge(stats.dataQuality) + '</div>' +
+    renderDataQualityCard(stats.dataQuality) +
+    renderNonClassifiedBanner(stats) +
+    renderCashReconcileBanner(stats, trip.id) +
+    renderKpiRow(stats) +
+    completenessNote +
+    renderCategoryBars(stats, 'Composizione del Costo Reale per categoria')
+  );
+}
+
+function renderCategoryBars(stats, title){
+  if (!stats.byCategory.length){
+    return '<div class="card"><h2>' + title + '</h2><p class="card-sub">Aggiungi qualche spesa per vedere la composizione.</p></div>';
+  }
+  var positives = stats.byCategory.filter(function(c){ return c.total > 0; });
+  var max = positives.length ? positives[0].total : 1;
+  var rows = positives.slice(0,10).map(function(c){
+    var pct = max ? (c.total/max*100) : 0;
+    return (
+      '<div class="bar-row">' +
+        '<div class="bar-label"><span class="cat-dot" style="background:' + colorForCategory(c.category) + '"></span>' + escapeHtml(c.category) + '</div>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + pct.toFixed(1) + '%; background:' + colorForCategory(c.category) + '"></div></div>' +
+        '<div class="bar-amount">' + fmtEUR(c.total) + '</div>' +
+      '</div>'
+    );
+  }).join('');
+  return '<div class="card"><h2>' + title + '</h2><div class="bars">' + rows + '</div></div>';
+}
+
+function renderGenericBars(items, title, sub){
+  if (!items.length) return '<div class="card"><h2>' + title + '</h2><p class="card-sub">Nessun dato.</p></div>';
+  var max = Math.max.apply(null, items.map(function(i){ return i.total; }).concat([1]));
+  var rows = items.map(function(i){
+    var pct = max ? (i.total/max*100) : 0;
+    return (
+      '<div class="bar-row">' +
+        '<div class="bar-label"><span class="cat-dot" style="background:' + (i.color||'#8593A6') + '"></span>' + escapeHtml(i.label) + '</div>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + pct.toFixed(1) + '%; background:' + (i.color||'#8593A6') + '"></div></div>' +
+        '<div class="bar-amount">' + fmtEUR(i.total) + '</div>' +
+      '</div>'
+    );
+  }).join('');
+  return '<div class="card"><h2>' + title + '</h2>' + (sub ? '<p class="card-sub">' + sub + '</p>' : '') + '<div class="bars">' + rows + '</div></div>';
+}
+
+function renderExpenseTable(trip){
+  var list = (state.expensesByTrip[trip.id] || []);
+  var filtered = list.filter(function(e){
+    if (state.tableCategoryFilter && (e.categoryOriginal||e.category) !== state.tableCategoryFilter) return false;
+    if (state.tableNatureFilter && e.nature !== state.tableNatureFilter) return false;
+    return true;
+  });
+  var cats = {};
+  list.forEach(function(e){ cats[e.categoryOriginal||e.category] = true; });
+  var filterOptions = '<option value="">Tutte le categorie</option>' + Object.keys(cats).sort().map(function(c){
+    return '<option value="' + escapeHtml(c) + '"' + (state.tableCategoryFilter===c?' selected':'') + '>' + escapeHtml(c) + '</option>';
+  }).join('');
+  var natureFilterOptions = '<option value="">Tutte le nature</option>' + NATURE_OPTIONS.map(function(o){
+    return '<option value="' + o.value + '"' + (state.tableNatureFilter===o.value?' selected':'') + '>' + o.label + '</option>';
+  }).join('');
+
+  var rowsHtml;
+  if (!filtered.length){
+    rowsHtml = '<tr class="empty-row"><td colspan="9">Nessuna spesa registrata' + ((state.tableCategoryFilter||state.tableNatureFilter) ? ' con questi filtri.' : ' ancora. Aggiungila qui sopra.') + '</td></tr>';
+  } else {
+    rowsHtml = filtered.map(function(e){
+      var natureBadge = e.nature === 'da-classificare' ? '<span class="tag-disc" style="color:#6B5017; background:#FBF0D9;">DA CLASSIFICARE</span>' :
+        (e.nature === 'personale' ? '<span class="tag-disc">PERSONALE</span>' : (e.nature === 'opzionale' ? '<span class="tag-type" style="color:var(--gold-ink);">Opzionale</span>' : ''));
+      var moveBadge = '';
+      if (e.movementType === 'da-riconciliare') moveBadge = '<span class="tag-disc" style="color:#6B3B17; background:#F4E4DF;">DA RICONCILIARE</span>';
+      else if (e.movementType && e.movementType !== 'spesa') moveBadge = '<span class="tag-type" style="color:var(--teal);">' + movementLabel(e.movementType) + '</span>';
+      var amountCell = hasActualAmount(e) ? fmtEUR(e.amount) :
+        '<span style="color:var(--text-muted); font-style:italic;">Previsto ' + fmtEUR(e.plannedAmount) + '</span>';
+      var catOriginal = e.categoryOriginal || e.category;
+      var catNorm = displayCategory(e);
+      var catCell = '<span class="cat-cell"><span class="cat-dot" style="background:' + colorForCategory(catOriginal) + '"></span>' + escapeHtml(catOriginal) +
+        (catNorm !== catOriginal ? '<span style="color:var(--text-muted); font-size:11px;"> → ' + escapeHtml(catNorm) + '</span>' : '') + '</span>';
+      return (
+        '<tr>' +
+          '<td data-label="Data">' + (fmtDate(e.date) || '—') + '</td>' +
+          '<td data-label="Destinazione">' + (escapeHtml(e.destination) || '—') + '</td>' +
+          '<td data-label="Descrizione">' + escapeHtml(e.description) + '</td>' +
+          '<td data-label="Categoria">' + catCell + '</td>' +
+          '<td data-label="Momento"><span class="tag-type">' + timingLabel(e.timing) + '</span></td>' +
+          '<td data-label="Natura">' + natureBadge + '</td>' +
+          '<td data-label="Movimento">' + moveBadge + '</td>' +
+          '<td data-label="Importo" class="amount-cell">' + amountCell + '</td>' +
+          '<td data-label="Azioni"><span class="row-actions">' +
+            '<button class="btn btn-ghost btn-sm" data-action="edit-expense" data-id="' + e.id + '" title="Modifica">✎</button>' +
+            '<button class="btn btn-danger btn-sm" data-action="delete-expense" data-id="' + e.id + '" title="Elimina">✕</button>' +
+          '</span></td>' +
+        '</tr>'
+      );
+    }).join('');
+  }
+
+  return (
+    '<div class="card">' +
+      '<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">' +
+        '<div><h2>Registro spese</h2><p class="card-sub">' + list.length + ' voci registrate</p></div>' +
+        '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
+          '<select id="categoryFilter" style="border:1px solid var(--line); border-radius:var(--radius-s); padding:7px 9px; font-size:12.5px; background:#FBFAF7;">' + filterOptions + '</select>' +
+          '<select id="natureFilter" style="border:1px solid var(--line); border-radius:var(--radius-s); padding:7px 9px; font-size:12.5px; background:#FBFAF7;">' + natureFilterOptions + '</select>' +
+          '<button class="btn btn-outline-dark btn-sm" data-action="export-csv">Esporta CSV</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="table-wrap"><table class="expenses"><thead><tr>' +
+        '<th>Data</th><th>Destinazione</th><th>Descrizione</th><th>Categoria</th><th>Momento</th><th>Natura</th><th>Movimento</th><th style="text-align:right;">Importo</th><th></th>' +
+      '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>' +
+    '</div>'
+  );
+}
+
+function renderSpeseTab(trip){
+  return (
+    '<div class="card"><h2>' + (state.editingExpenseId ? 'Modifica spesa' : 'Aggiungi una spesa') + '</h2>' +
+    '<p class="card-sub">Descrivi la spesa e classificala su Momento e Natura: da qui derivano automaticamente i tre budget.</p>' +
+    renderExpenseForm(trip) + '</div>' +
+    renderExpenseTable(trip)
+  );
+}
+
+function renderBudgetTab(trip, stats){
+  var hasPreventivo = stats.preventivoTotale > 0;
+  var scostamentoColor = stats.scostamento > 0 ? 'var(--rust)' : 'var(--teal)';
+  var preventivoBlock = hasPreventivo ? (
+    '<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">' +
+      '<div class="kpi"><div class="kpi-label">Budget iniziale</div><div class="kpi-value">' + fmtEUR(stats.preventivoTotale) + '</div></div>' +
+      '<div class="kpi"><div class="kpi-label">Speso effettivo</div><div class="kpi-value">' + fmtEUR(stats.consuntivoConPreventivo) + '</div></div>' +
+      '<div class="kpi"><div class="kpi-label">Scostamento</div><div class="kpi-value" style="color:' + scostamentoColor + ';">' + (stats.scostamento>0?'+':'') + fmtEUR(stats.scostamento) + '</div></div>' +
+      '<div class="kpi"><div class="kpi-label">Scostamento %</div><div class="kpi-value" style="color:' + scostamentoColor + ';">' + (stats.scostamentoPct!=null ? (stats.scostamentoPct>0?'+':'') + fmtPct(stats.scostamentoPct) : 'N/D') + '</div></div>' +
+    '</div>'
+  ) : (
+    '<div class="card"><p class="card-sub" style="margin:0;">Non hai ancora impostato un "Importo previsto" su nessuna spesa. Aggiungilo nel form di Spese per confrontare preventivo e consuntivo (utile se crei il viaggio prima di partire).</p></div>'
+  );
+
+  return (
+    '<div class="card"><h2>Preventivo vs Consuntivo</h2><p class="card-sub">Confronto tra quanto pianificato ("Importo previsto") e quanto speso davvero, solo sulle voci dove hai impostato un preventivo.</p></div>' +
+    preventivoBlock +
+    renderGenericBars(stats.eliminabiliByCategory.map(function(c){ return { label:c.category, total:c.total, color:colorForCategory(c.category) }; }),
+      'Dove avresti potuto risparmiare',
+      stats.eliminabili > 0 ? ('Totale potenzialmente risparmiabile: ' + fmtEUR(stats.eliminabili) + ' — spese opzionali o personali non incluse nel Budget Replicabile.') : 'Nessuna spesa esclusa dal Budget Replicabile: bel viaggio essenziale!')
+  );
+}
+
+function renderStatisticheTab(trip, stats){
+  var natureItems = [
+    { label:'Essenziale', total:stats.byNature.essenziale, color:'#2F6B67' },
+    { label:'Standard', total:stats.byNature.standard, color:'#4A6FA5' },
+    { label:'Opzionale', total:stats.byNature.opzionale, color:'#B98A2E' },
+    { label:'Personale / Extra', total:stats.byNature.personale, color:'#9C4A34' },
+    { label:'Da classificare', total:stats.byNature['da-classificare'], color:'#9C8F7A' }
+  ].filter(function(i){ return i.total > 0; });
+  var timingItems = [
+    { label:'Pre-partenza', total:stats.byTiming['pre-partenza'], color:'#2F6B67' },
+    { label:'In loco', total:stats.byTiming['in-loco'], color:'#B98A2E' },
+    { label:'Post-viaggio', total:stats.byTiming['post-viaggio'], color:'#4A6FA5' },
+    { label:'Da classificare', total:stats.byTiming['da-classificare'], color:'#9C8F7A' }
+  ].filter(function(i){ return i.total > 0; });
+
+  return (
+    renderCategoryBars(stats, 'Distribuzione per categoria') +
+    renderGenericBars(natureItems, 'Composizione del budget per natura', 'Essenziale + Standard = Budget Replicabile di base') +
+    renderGenericBars(timingItems, 'Pre-partenza vs In loco')
+  );
+}
+
+function renderRiepilogoTab(trip, stats){
+  var text = generateSummaryText(trip, stats);
+  return (
+    '<div class="receipt">' +
+      '<h2>Riepilogo da condividere</h2>' +
+      '<p class="card-sub">Pronto da copiare e incollare in chat, se qualcuno ti chiede quanto hai speso</p>' +
+      '<pre id="receiptText">' + escapeHtml(text) + '</pre>' +
+      '<div class="form-actions"><button class="btn btn-gold btn-sm" data-action="copy-receipt">Copia riepilogo</button></div>' +
+    '</div>'
+  );
+}
+
+function renderImpostazioniTab(trip){
+  var dur = tripDuration(trip);
+  var rows = [
+    ['Nome', trip.name], ['Anno', trip.year], ['Persone', trip.people],
+    ['Data partenza', trip.startDate ? fmtDate(trip.startDate) : 'Non impostata'],
+    ['Data ritorno', trip.endDate ? fmtDate(trip.endDate) : 'Non impostata'],
+    ['Durata', dur ? (dur.days + ' giorni / ' + dur.nights + ' notti') : 'N/D'],
+    ['Destinazioni / Paesi', trip.countries || '—'],
+    ['Completezza dati', completenessLabel(trip.completeness)],
+    ['Note', trip.notes || '—']
+  ];
+  return (
+    '<div class="card"><h2>Impostazioni viaggio</h2>' +
+    '<div style="display:grid; grid-template-columns:180px 1fr; row-gap:10px; font-size:13.5px; margin-top:10px;">' +
+      rows.map(function(r){ return '<div style="color:var(--text-muted);">' + r[0] + '</div><div>' + escapeHtml(String(r[1])) + '</div>'; }).join('') +
+    '</div>' +
+    '<div class="form-actions"><button class="btn btn-outline-dark btn-sm" data-action="open-edit-trip" data-id="' + trip.id + '">Modifica viaggio</button>' +
+    '<button class="btn btn-danger btn-sm" data-action="delete-trip" data-id="' + trip.id + '">Elimina viaggio</button></div>' +
+    '</div>'
+  );
+}
+
+function renderTripView(){
+  var trip = state.trips.find(function(t){ return t.id === state.currentTripId; });
+  if (!trip) return renderEmptyState();
+  var expenses = state.expensesByTrip[trip.id] || [];
+  var stats = tripFullStats(trip, expenses);
+  var body;
+  switch (state.tripTab){
+    case 'spese': body = renderSpeseTab(trip); break;
+    case 'budget': body = renderBudgetTab(trip, stats); break;
+    case 'statistiche': body = renderStatisticheTab(trip, stats); break;
+    case 'riepilogo': body = renderRiepilogoTab(trip, stats); break;
+    case 'impostazioni': body = renderImpostazioniTab(trip); break;
+    default: body = renderDashboardTab(trip, stats);
+  }
+  return (
+    '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;">' +
+      '<div><h2 style="font-family:var(--font-display); font-size:24px; margin:0 0 2px;">' + escapeHtml(trip.name) + '</h2>' +
+      '<p class="card-sub" style="margin:0;">' + trip.year + ' · ' + trip.people + ' person' + (trip.people===1?'a':'e') +
+      (stats.duration ? ' · ' + stats.duration.days + ' giorni' : '') + (trip.countries ? ' · ' + escapeHtml(trip.countries) : '') + '</p></div>' +
+    '</div>' +
+    renderTripTabs(trip) +
+    body
+  );
+}
+
+function renderExpenseForm(trip){
+  var editing = null;
+  if (state.editingExpenseId) editing = (state.expensesByTrip[trip.id]||[]).find(function(e){ return e.id===state.editingExpenseId; });
+  var d = Object.assign({ description:'', category:'', amount:'', date:'', destination:'', note:'' }, defaultExpenseFields(), editing || {});
+  var replicableValue = d.includeInReplicable === true ? 'true' : (d.includeInReplicable === false ? 'false' : '');
+
+  // Categoria: in modifica di una spesa GIÀ ESISTENTE, "Categoria originale" è mostrata ma
+  // NON è un campo del form (non viene mai inviata al submit: non può quindi sovrascrivere
+  // categoryOriginal). Solo "Categoria normalizzata" è editabile, come campo indipendente.
+  // In creazione di una spesa NUOVA, un unico campo "Categoria" imposta entrambe le cose la
+  // prima volta (da quel momento in poi restano comunque due concetti separati).
+  var categoryBlock;
+  if (editing){
+    var origCat = editing.categoryOriginal || editing.category;
+    categoryBlock =
+      '<div class="field"><label>Categoria originale</label>' +
+        '<input type="text" value="' + escapeHtml(origCat) + '" disabled style="background:var(--paper-2); color:var(--text-muted);">' +
+        '<span style="font-size:11px; color:var(--text-muted);">Dato storico, non modificabile qui</span></div>' +
+      '<div class="field"><label>Categoria normalizzata</label><select name="categoryNormalized" id="categoryNormalizedSelect">' + renderCategoryOptionsPlain(displayCategory(editing)) + '</select></div>';
+  } else {
+    var customCat = '';
+    categoryBlock =
+      '<div class="field"><label>Categoria</label><select name="category" id="categorySelect">' + renderCategoryOptions(d.category) + '</select></div>' +
+      '<div class="field" id="customCategoryField" style="display:none;"><label>Nome categoria</label><input type="text" name="customCategory" value="" placeholder="Scrivi una categoria"></div>';
+  }
+
+  return (
+    '<form id="expenseForm" data-trip="' + trip.id + '">' +
+      '<div class="form-grid">' +
+        '<div class="field"><label>Descrizione</label><input type="text" name="description" placeholder="Es. Cena sul lungomare" value="' + escapeHtml(d.description) + '" required></div>' +
+        categoryBlock +
+      '</div>' +
+      '<div class="form-grid row2" style="margin-top:10px;">' +
+        '<div class="field"><label>Momento</label><select name="timing">' + selectOptions(TIMING_OPTIONS, d.timing) + '</select></div>' +
+        '<div class="field"><label>Natura</label><select name="nature">' + selectOptions(NATURE_OPTIONS, d.nature) + '</select></div>' +
+        '<div class="field"><label>Tipo movimento</label><select name="movementType">' + selectOptions(MOVEMENT_OPTIONS, d.movementType) + '</select></div>' +
+        '<div class="field"><label>Budget Replicabile</label><select name="includeInReplicable">' + selectOptions(REPLICABLE_OPTIONS, replicableValue) + '</select></div>' +
+      '</div>' +
+      '<div class="form-grid row2" style="margin-top:10px;">' +
+        '<div class="field"><label>Importo effettivo (EUR)</label><input type="number" step="0.01" min="0" name="amount" placeholder="lascia vuoto se solo previsto" value="' + (d.amount!==''&&d.amount!=null?d.amount:'') + '"></div>' +
+        '<div class="field"><label>Importo previsto (opzionale)</label><input type="number" step="0.01" min="0" name="plannedAmount" placeholder="0,00" value="' + (d.plannedAmount!=null?d.plannedAmount:'') + '"></div>' +
+        '<div class="field"><label>Data (opzionale)</label><input type="date" name="date" value="' + escapeHtml(d.date||'') + '"></div>' +
+        '<div class="field"><label>Destinazione (opzionale)</label><input type="text" name="destination" placeholder="Es. Ubud" value="' + escapeHtml(d.destination||'') + '"></div>' +
+      '</div>' +
+      '<div class="field" style="margin-top:10px;"><label>Note (opzionale)</label><input type="text" name="note" placeholder="Nota libera" value="' + escapeHtml(d.note||'') + '"></div>' +
+      '<div class="form-actions">' +
+        (state.editingExpenseId ? '<button type="button" class="btn btn-ghost btn-sm" data-action="cancel-edit-expense">Annulla</button>' : '') +
+        '<button type="submit" class="btn btn-gold btn-sm">' + (state.editingExpenseId ? 'Salva modifiche' : 'Aggiungi spesa') + '</button>' +
+      '</div>' +
+    '</form>'
+  );
+}
+
+/* ============================================================
+   PANORAMICA GENERALE: tabella ordinabile + grafici storici
+   ============================================================ */
+var OVERVIEW_COLUMNS = [
+  { key:'year', label:'Anno' }, { key:'name', label:'Viaggio' }, { key:'days', label:'Giorni' },
+  { key:'people', label:'Persone' }, { key:'real', label:'Costo Reale' }, { key:'replicabile', label:'Budget Replicabile' },
+  { key:'essenziale', label:'Budget Essenziale' }, { key:'realPerPerson', label:'Reale/persona' },
+  { key:'realPerPersonPerDay', label:'Reale/p./giorno' }, { key:'replicabilePerPersonPerDay', label:'Replic./p./giorno' },
+  { key:'pctExtra', label:'% Extra' }, { key:'pctCibo', label:'% Cibo' }, { key:'pctAlloggio', label:'% Alloggio' }, { key:'pctVoli', label:'% Voli' }
+];
+
+function buildMultiLineSVG(series, years){
+  var w = 720, h = 240, padL = 52, padR = 16, padT = 16, padB = 30;
+  var innerW = w - padL - padR, innerH = h - padT - padB;
+  var allVals = [];
+  series.forEach(function(s){ s.values.forEach(function(v){ if (v!=null) allVals.push(v); }); });
+  var maxVal = Math.max.apply(null, allVals.concat([1]));
+  var n = years.length;
+  function x(i){ return n<=1 ? padL + innerW/2 : padL + (innerW * i/(n-1)); }
+  function y(v){ return padT + innerH - (innerH * (v/maxVal)); }
+  var gridLines = '', gridLabels = '';
+  for (var g=0; g<=3; g++){
+    var val = maxVal * g/3, yy = y(val);
+    gridLines += '<line x1="' + padL + '" y1="' + yy + '" x2="' + (w-padR) + '" y2="' + yy + '" stroke="#E7E1D2" stroke-width="1"/>';
+    gridLabels += '<text x="' + (padL-8) + '" y="' + (yy+3) + '" font-size="10" fill="#6B6558" text-anchor="end" font-family="JetBrains Mono, monospace">' + Math.round(val) + '</text>';
+  }
+  var xLabels = years.map(function(yr,i){
+    return '<text x="' + x(i) + '" y="' + (h-8) + '" font-size="11" fill="#6B6558" text-anchor="middle" font-family="JetBrains Mono, monospace">' + yr + '</text>';
+  }).join('');
+  var anyProvisional = false;
+  var lines = series.map(function(s){
+    var pts = s.values.map(function(v,i){ return v==null ? null : x(i)+','+y(v); }).filter(Boolean).join(' ');
+    var dash = s.dash ? ' stroke-dasharray="' + s.dash + '"' : '';
+    // un punto "provvisorio" (es. Costo Reale con contanti da riconciliare, o dati storici
+    // incompleti) è un anello vuoto invece di un pallino pieno: resta nel grafico ma non
+    // sembra un dato certo quanto gli altri.
+    var dots = s.values.map(function(v,i){
+      if (v==null) return '';
+      var isProv = s.provisional && s.provisional[i];
+      if (isProv){ anyProvisional = true; return '<circle cx="'+x(i)+'" cy="'+y(v)+'" r="4" fill="#fff" stroke="'+s.color+'" stroke-width="2"/>'; }
+      return '<circle cx="'+x(i)+'" cy="'+y(v)+'" r="3" fill="'+s.color+'"/>';
+    }).join('');
+    return '<polyline points="' + pts + '" fill="none" stroke="' + s.color + '" stroke-width="2.5"' + dash + '/>' + dots;
+  }).join('');
+  var legend = series.map(function(s,i){
+    return '<span style="display:inline-flex; align-items:center; gap:5px; margin-right:14px;"><span style="width:10px; height:10px; border-radius:50%; background:' + s.color + '; display:inline-block;"></span>' + s.label + '</span>';
+  }).join('') + (anyProvisional ? '<span style="display:inline-flex; align-items:center; gap:5px; margin-right:14px;"><span style="width:9px; height:9px; border-radius:50%; background:#fff; border:2px solid #6B6558; display:inline-block;"></span>dato provvisorio</span>' : '');
+  return '<div class="card-sub" style="margin-bottom:8px;">' + legend + '</div>' +
+    '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" style="max-width:100%; height:auto;">' + gridLines + gridLabels + lines + xLabels + '</svg>';
+}
+
+function buildBarCompareSVG(items){ // [{label, value, color, provisional}]
+  var w = 720, barH = 26, gap = 10, padL = 130, padR = 70, padT = 10;
+  var maxVal = Math.max.apply(null, items.map(function(i){ return i.value||0; }).concat([1]));
+  var h = padT*2 + items.length*(barH+gap);
+  var innerW = w - padL - padR;
+  var rows = items.map(function(it,i){
+    var y = padT + i*(barH+gap);
+    var bw = maxVal ? (it.value/maxVal*innerW) : 0;
+    var barStyle = it.provisional ? ('fill="none" stroke="' + it.color + '" stroke-width="2" stroke-dasharray="4,3"') : ('fill="' + it.color + '"');
+    return (
+      '<text x="' + (padL-8) + '" y="' + (y+barH*0.65) + '" font-size="11.5" fill="#22272B" text-anchor="end" font-family="Inter, sans-serif">' + escapeHtml(it.label) + '</text>' +
+      '<rect x="' + padL + '" y="' + y + '" width="' + bw.toFixed(1) + '" height="' + barH + '" rx="4" ' + barStyle + '/>' +
+      '<text x="' + (padL+bw+8) + '" y="' + (y+barH*0.65) + '" font-size="11.5" fill="#6B6558" font-family="JetBrains Mono, monospace">' + fmtEUR(it.value) + (it.provisional?' (provv.)':'') + '</text>'
+    );
+  }).join('');
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" style="max-width:100%; height:auto;">' + rows + '</svg>';
+}
+
+// Aggrega un budget (Replicabile o Essenziale) su più viaggi rispettando lo stato "known":
+// un viaggio con quel budget sconosciuto NON contribuisce alla somma come se fosse zero.
+// Aggrega un budget (Replicabile o Essenziale) su più viaggi rispettando due livelli distinti:
+// "known" (il valore è calcolabile, anche se solo in parte affidabile) e "definitivo" (calcolabile
+// E non provvisorio per quel viaggio: nessuna spesa da classificare residua, nessun contante da
+// riconciliare, dati storici completi). Un viaggio con budget noto ma provvisorio NON deve mai
+// far apparire l'aggregato come "completo".
+function aggregateKnownBudget(rows, valueKey, knownKey){
+  var sum = 0, knownCount = 0, definitiveCount = 0, realSumForKnown = 0;
+  rows.forEach(function(r){
+    if (r[knownKey]){
+      sum += r[valueKey]; knownCount++; realSumForKnown += r.real;
+      if (!r.isProvisional && !r.incompleteData) definitiveCount++;
+    }
+  });
+  return { sum: sum, knownCount: knownCount, definitiveCount: definitiveCount, totalCount: rows.length, realSumForKnown: realSumForKnown };
+}
+// Stati possibili, dal più al meno affidabile: nd (nessun viaggio noto) -> parziale (alcuni
+// viaggi non hanno nemmeno un valore calcolabile) -> provvisorio (tutti i viaggi contribuiscono
+// con un numero, ma non tutti sono definitivi) -> completo (tutti noti E tutti definitivi).
+function aggregateStatusLabel(agg){
+  if (agg.knownCount === 0) return 'nd';
+  if (agg.knownCount < agg.totalCount) return 'parziale';
+  if (agg.definitiveCount < agg.knownCount) return 'provvisorio';
+  return 'completo';
+}
+function renderAggregateKpiValue(label, agg){
+  var status = aggregateStatusLabel(agg);
+  if (status === 'nd'){
+    return '<div class="kpi"><div class="kpi-label">' + label + '</div><div class="kpi-value" style="color:var(--text-muted); font-size:19px;">N/D</div><div class="kpi-sub">nessun viaggio ha ancora dati classificati a sufficienza</div></div>';
+  }
+  var tagColor = status === 'provvisorio' ? 'var(--gold-ink)' : (status === 'parziale' ? 'var(--gold-ink)' : '');
+  var tag = status !== 'completo' ? ' <span style="font-size:10px; font-weight:700; color:' + tagColor + ';">' + status.toUpperCase() + '</span>' : '';
+  var sub;
+  if (status === 'parziale') sub = 'Parziale — ' + agg.knownCount + ' viaggi su ' + agg.totalCount + ' classificati. Non rappresenta l\'intero storico.';
+  else if (status === 'provvisorio') sub = 'Provvisorio — ' + agg.definitiveCount + ' viaggi definitivi, ' + (agg.knownCount - agg.definitiveCount) + ' ancora da completare (classificazione, contanti o dati storici).';
+  else sub = 'somma su tutti i ' + agg.totalCount + ' viaggi, tutti definitivi';
+  return '<div class="kpi"><div class="kpi-label">' + label + tag + '</div><div class="kpi-value">' + fmtEUR(agg.sum) + '</div><div class="kpi-sub">' + sub + '</div></div>';
+}
+
+// Stato del Costo Reale totale: qui il valore è SEMPRE numericamente noto per ogni viaggio
+// (è la somma di ciò che è stato registrato), quindi i soli stati possibili sono
+// "completo" (nessun viaggio provvisorio/incompleto) o "provvisorio".
+function realAggregateStatus(rows){
+  var definitiveCount = rows.filter(function(r){ return !r.realIsProvisional && !r.incompleteData; }).length;
+  return { status: definitiveCount === rows.length ? 'completo' : 'provvisorio', definitiveCount: definitiveCount, totalCount: rows.length };
+}
+
+function renderOverviewKpis(totalAll, replicabileAgg, essenzialeAgg, nTrips, realStatus){
+  var elimStatus = aggregateStatusLabel(replicabileAgg);
+  var elimBlock;
+  if (elimStatus === 'nd'){
+    elimBlock = '<div class="kpi"><div class="kpi-label">Spese eliminabili totali</div><div class="kpi-value" style="color:var(--text-muted); font-size:19px;">N/D</div><div class="kpi-sub">nessun viaggio ha budget replicabile noto</div></div>';
+  } else {
+    // Confronta Costo Reale e Budget Replicabile SOLO sugli stessi viaggi noti: non mischia
+    // mai un totale "Reale" su tutti i viaggi con un "Replicabile" calcolato su un sottoinsieme.
+    var eliminabili = replicabileAgg.realSumForKnown - replicabileAgg.sum;
+    var pct = replicabileAgg.realSumForKnown ? eliminabili/replicabileAgg.realSumForKnown : 0;
+    var tag = elimStatus !== 'completo' ? ' <span style="font-size:10px; font-weight:700; color:var(--gold-ink);">' + elimStatus.toUpperCase() + '</span>' : '';
+    var sub;
+    if (elimStatus === 'parziale') sub = 'Parziale — calcolato solo sui ' + replicabileAgg.knownCount + ' viaggi su ' + replicabileAgg.totalCount + ' con budget noto.';
+    else if (elimStatus === 'provvisorio') sub = 'Provvisorio — ' + replicabileAgg.definitiveCount + ' viaggi definitivi su ' + replicabileAgg.knownCount + ' con budget noto.';
+    else sub = fmtPct(pct) + ' del Costo Reale di quei viaggi';
+    elimBlock = '<div class="kpi"><div class="kpi-label">Spese eliminabili totali' + tag + '</div><div class="kpi-value" style="color:var(--rust);">' + fmtEUR(eliminabili) + '</div><div class="kpi-sub">' + sub + '</div></div>';
+  }
+  var realTag = realStatus.status !== 'completo' ? ' <span style="font-size:10px; font-weight:700; color:var(--gold-ink);">PROVVISORIO</span>' : '';
+  var realSub = realStatus.status !== 'completo' ?
+    'Provvisorio — ' + realStatus.definitiveCount + ' viaggi definitivi su ' + realStatus.totalCount + ' (contanti da riconciliare o dati storici incompleti sugli altri).' :
+    nTrips + ' viaggi, tutti definitivi';
+  return (
+    '<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">' +
+      '<div class="kpi paid"><div class="kpi-label">Costo Reale totale' + realTag + '</div><div class="kpi-value">' + fmtEUR(totalAll) + '</div><div class="kpi-sub">' + realSub + '</div></div>' +
+      renderAggregateKpiValue('Budget Replicabile totale', replicabileAgg) +
+      renderAggregateKpiValue('Budget Essenziale totale', essenzialeAgg) +
+    '</div>' +
+    '<div class="kpi-grid" style="grid-template-columns:1fr; margin-top:1px;">' + elimBlock + '</div>'
+  );
+}
+
+/* ============================================================
+   CLASSIFICAZIONE MASSIVA: filtra su tutti i viaggi, seleziona, applica in blocco
+   ============================================================ */
+function getAllExpensesFlat(){
+  var out = [];
+  state.trips.forEach(function(t){
+    (state.expensesByTrip[t.id]||[]).forEach(function(e){ out.push({ e:e, trip:t }); });
+  });
+  return out;
+}
+function filteredClassifyRows(){
+  var f = state.classifyFilters;
+  var descQ = (f.description||'').trim().toLowerCase();
+  return getAllExpensesFlat().filter(function(row){
+    var catOrig = row.e.categoryOriginal || row.e.category;
+    if (f.tripId && row.trip.id !== f.tripId) return false;
+    if (f.category && catOrig !== f.category) return false;
+    if (f.timing && row.e.timing !== f.timing) return false;
+    if (f.nature && row.e.nature !== f.nature) return false;
+    if (descQ && row.e.description.toLowerCase().indexOf(descQ) === -1) return false;
+    return true;
+  });
+}
+function applyBulkClassification(){
+  var b = state.classifyBulk;
+  var ids = Object.keys(state.classifySelected).filter(function(id){ return state.classifySelected[id]; });
+  if (!ids.length){ showToast('Seleziona almeno una spesa.'); return; }
+  var touched = 0;
+  getAllExpensesFlat().forEach(function(row){
+    if (state.classifySelected[row.e.id] !== true) return;
+    var list = state.expensesByTrip[row.trip.id];
+    var idx = list.findIndex(function(x){ return x.id === row.e.id; });
+    if (idx === -1) return;
+    var patch = { _schemaVersion: AppStorage.DATA_SCHEMA_VERSION };
+    if (b.nature) patch.nature = b.nature;
+    if (b.timing) patch.timing = b.timing;
+    // La classificazione in blocco NON tocca MAI categoryOriginal: solo categoryNormalized,
+    // usata per statistiche e grafici. La categoria storica resta sempre recuperabile.
+    if (b.category) patch.categoryNormalized = b.category;
+    if (b.includeInReplicable === 'true') patch.includeInReplicable = true;
+    else if (b.includeInReplicable === 'false') patch.includeInReplicable = false;
+    else if (b.includeInReplicable === 'auto') patch.includeInReplicable = null;
+    var record = Object.assign({}, list[idx], patch);
+    list[idx] = record;
+    AppStorage.saveExpense(record);
+    touched++;
+  });
+  state.classifySelected = {};
+  state.classifyBulk = { nature:'', timing:'', category:'', includeInReplicable:'' };
+  showToast(touched + ' spes' + (touched===1?'a aggiornata':'e aggiornate') + '.');
+  render();
+}
+
+function renderClassifyView(){
+  var rows = filteredClassifyRows();
+  var f = state.classifyFilters;
+  var tripOptions = '<option value="">Tutti i viaggi</option>' + state.trips.slice().sort(function(a,b){return a.year-b.year;})
+    .map(function(t){ return '<option value="'+t.id+'"'+(f.tripId===t.id?' selected':'')+'>'+t.year+' · '+escapeHtml(t.name)+'</option>'; }).join('');
+  var allCats = {}; getAllExpensesFlat().forEach(function(r){ allCats[r.e.categoryOriginal||r.e.category]=true; });
+  var catOptions = '<option value="">Tutte le categorie originali</option>' + Object.keys(allCats).sort()
+    .map(function(c){ return '<option value="'+escapeHtml(c)+'"'+(f.category===c?' selected':'')+'>'+escapeHtml(c)+'</option>'; }).join('');
+  var timingFilterOptions = '<option value="">Tutti i momenti</option>' + TIMING_OPTIONS.map(function(o){ return '<option value="'+o.value+'"'+(f.timing===o.value?' selected':'')+'>'+o.label+'</option>'; }).join('');
+  var natureFilterOptions = '<option value="">Tutte le nature</option>' + NATURE_OPTIONS.map(function(o){ return '<option value="'+o.value+'"'+(f.nature===o.value?' selected':'')+'>'+o.label+'</option>'; }).join('');
+
+  var selectedCount = Object.keys(state.classifySelected).filter(function(k){ return state.classifySelected[k]; }).length;
+  var allVisibleSelected = rows.length > 0 && rows.every(function(r){ return state.classifySelected[r.e.id]; });
+
+  var rowsHtml = rows.length ? rows.map(function(r){
+    var e = r.e;
+    var catOrig = e.categoryOriginal || e.category;
+    var catNorm = displayCategory(e);
+    return (
+      '<tr>' +
+        '<td data-label="Sel."><input type="checkbox" class="classify-check" data-id="' + e.id + '" data-trip="' + r.trip.id + '"' + (state.classifySelected[e.id]?' checked':'') + '></td>' +
+        '<td data-label="Viaggio">' + r.trip.year + ' · ' + escapeHtml(r.trip.name) + '</td>' +
+        '<td data-label="Descrizione">' + escapeHtml(e.description) + '</td>' +
+        '<td data-label="Categoria originale">' + escapeHtml(catOrig) + '</td>' +
+        '<td data-label="Categoria normalizzata">' + escapeHtml(catNorm) + (catNorm!==catOrig?'':'<span style="color:var(--text-muted);"> (=)</span>') + '</td>' +
+        '<td data-label="Momento">' + timingLabel(e.timing) + '</td>' +
+        '<td data-label="Natura">' + natureLabel(e.nature) + '</td>' +
+        '<td data-label="Importo" class="amount-cell">' + (hasActualAmount(e) ? fmtEUR(e.amount) : 'Previsto ' + fmtEUR(e.plannedAmount)) + '</td>' +
+      '</tr>'
+    );
+  }).join('') : '<tr class="empty-row"><td colspan="8">Nessuna spesa corrisponde ai filtri.</td></tr>';
+
+  return (
+    '<h2 style="font-family:var(--font-display); font-size:24px; margin:0 0 2px;">Classifica spese in blocco</h2>' +
+    '<p class="card-sub" style="margin:0 0 14px;">Filtra per categoria <b>originale</b>, seleziona più righe, poi applica Natura/Momento/Categoria normalizzata/Budget Replicabile a tutte insieme. La categoria originale storica non viene mai modificata da qui.</p>' +
+    '<div class="card">' +
+      '<div class="form-grid row2">' +
+        '<div class="field"><label>Viaggio</label><select id="clFilterTrip">' + tripOptions + '</select></div>' +
+        '<div class="field"><label>Categoria originale</label><select id="clFilterCategory">' + catOptions + '</select></div>' +
+        '<div class="field"><label>Momento</label><select id="clFilterTiming">' + timingFilterOptions + '</select></div>' +
+        '<div class="field"><label>Natura attuale</label><select id="clFilterNature">' + natureFilterOptions + '</select></div>' +
+      '</div>' +
+      '<div class="field" style="margin-top:10px;"><label>Cerca nella descrizione</label><input type="text" id="clFilterDesc" value="' + escapeHtml(f.description||'') + '" placeholder="Es. souvenir"></div>' +
+    '</div>' +
+    '<div class="card" style="background:var(--ink-2); border-color:var(--line-dark);">' +
+      '<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px;">' +
+        '<div style="color:var(--text-inverse); font-size:13px;">' +
+          '<b id="classifySelectedCount">' + selectedCount + '</b> selezionate su ' + rows.length + ' visibili</div>' +
+        '<div style="display:flex; gap:8px;">' +
+          '<button class="btn btn-outline btn-sm" data-action="classify-select-all">' + (allVisibleSelected ? 'Deseleziona tutte' : 'Seleziona tutte le visibili') + '</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="form-grid row2">' +
+        '<div class="field"><label style="color:#C8D2D8;">Imposta Natura</label><select id="clBulkNature"><option value="">(non modificare)</option>' + selectOptions(NATURE_OPTIONS, state.classifyBulk.nature) + '</select></div>' +
+        '<div class="field"><label style="color:#C8D2D8;">Imposta Momento</label><select id="clBulkTiming"><option value="">(non modificare)</option>' + selectOptions(TIMING_OPTIONS, state.classifyBulk.timing) + '</select></div>' +
+        '<div class="field"><label style="color:#C8D2D8;">Imposta Categoria normalizzata</label><select id="clBulkCategory"><option value="">(non modificare)</option>' + renderCategoryOptionsPlain(state.classifyBulk.category) + '</select></div>' +
+        '<div class="field"><label style="color:#C8D2D8;">Budget Replicabile</label><select id="clBulkReplicable"><option value="">(non modificare)</option><option value="auto"' + (state.classifyBulk.includeInReplicable==='auto'?' selected':'') + '>Automatico</option><option value="true"' + (state.classifyBulk.includeInReplicable==='true'?' selected':'') + '>Sì</option><option value="false"' + (state.classifyBulk.includeInReplicable==='false'?' selected':'') + '>No</option></select></div>' +
+      '</div>' +
+      '<div class="form-actions"><button class="btn btn-gold btn-sm" data-action="apply-bulk-classify">Applica alle selezionate</button></div>' +
+    '</div>' +
+    '<div class="card"><div class="table-wrap"><table class="expenses"><thead><tr>' +
+      '<th></th><th>Viaggio</th><th>Descrizione</th><th>Categoria originale</th><th>Categoria normalizzata</th><th>Momento</th><th>Natura</th><th style="text-align:right;">Importo</th>' +
+    '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div></div>'
+  );
+}
+
+function renderOverview(){
+  var rows = tripsOverview();
+  if (!rows.length) return renderEmptyState();
+  var sorted = sortOverviewRows(rows);
+  var sortedByYear = rows.slice().sort(function(a,b){ return a.year-b.year; });
+
+  var totalAll = rows.reduce(function(s,r){ return s+r.real; },0);
+  var replicabileAgg = aggregateKnownBudget(rows, 'replicabile', 'replicabileKnown');
+  var essenzialeAgg = aggregateKnownBudget(rows, 'essenziale', 'essenzialeKnown');
+  var realStatus = realAggregateStatus(rows);
+  var kpi = renderOverviewKpis(totalAll, replicabileAgg, essenzialeAgg, rows.length, realStatus);
+
+  var thead = '<tr>' + OVERVIEW_COLUMNS.map(function(c){
+    var arrow = state.overviewSort.key===c.key ? (state.overviewSort.dir==='asc'?' ↑':' ↓') : '';
+    return '<th style="cursor:pointer; white-space:nowrap;" data-action="sort-overview" data-key="' + c.key + '">' + c.label + arrow + '</th>';
+  }).join('') + '<th></th></tr>';
+
+  var tbody = sorted.map(function(r){
+    var completenessTag = r.completeness && r.completeness !== 'completo' ?
+      ' <span class="tag-disc" style="color:#6B5017; background:#FBF0D9;">' + completenessLabel(r.completeness).toUpperCase() + '</span>' : '';
+    return (
+      '<tr>' +
+        '<td><b>' + r.year + '</b></td>' +
+        '<td>' + escapeHtml(r.name) + completenessTag + '</td>' +
+        '<td>' + (r.duration ? r.duration.days : 'N/D') + '</td>' +
+        '<td>' + r.people + '</td>' +
+        '<td class="num">' + fmtEUR(r.real) + '</td>' +
+        '<td class="num">' + (r.replicabileKnown ? fmtEUR(r.replicabile) : 'N/D') + '</td>' +
+        '<td class="num">' + (r.essenzialeKnown ? fmtEUR(r.essenziale) : 'N/D') + '</td>' +
+        '<td class="num">' + fmtEUR(r.realPerPerson) + '</td>' +
+        '<td class="num">' + (r.realPerPersonPerDay!=null ? fmtEUR(r.realPerPersonPerDay) : 'N/D') + '</td>' +
+        '<td class="num">' + (r.replicabilePerPersonPerDay!=null ? fmtEUR(r.replicabilePerPersonPerDay) : 'N/D') + '</td>' +
+        '<td class="num">' + (r.replicabileKnown ? fmtPct(r.pctExtra) : 'N/D') + '</td>' +
+        '<td class="num">' + fmtPct(r.pctCibo) + '</td>' +
+        '<td class="num">' + fmtPct(r.pctAlloggio) + '</td>' +
+        '<td class="num">' + fmtPct(r.pctVoli) + '</td>' +
+        '<td><button class="btn btn-ghost btn-sm" data-action="select-trip" data-id="' + r.id + '">Apri →</button></td>' +
+      '</tr>'
+    );
+  }).join('');
+
+  var trendChart = buildMultiLineSVG([
+    { label:'Costo Reale', color:'#B98A2E', values: sortedByYear.map(function(r){ return r.real; }),
+      provisional: sortedByYear.map(function(r){ return r.realIsProvisional || r.incompleteData; }) },
+    { label:'Budget Replicabile', color:'#2F6B67', values: sortedByYear.map(function(r){ return r.replicabileKnown ? r.replicabile : null; }), dash:'5,4',
+      provisional: sortedByYear.map(function(r){ return r.replicabileKnown && (r.isProvisional || r.incompleteData); }) },
+    { label:'Budget Essenziale', color:'#9C4A34', values: sortedByYear.map(function(r){ return r.essenzialeKnown ? r.essenziale : null; }), dash:'2,3',
+      provisional: sortedByYear.map(function(r){ return r.essenzialeKnown && (r.isProvisional || r.incompleteData); }) }
+  ], sortedByYear.map(function(r){ return r.year; }));
+
+  // Il confronto €/persona/giorno usa PRIORITARIAMENTE solo viaggi con date confermate e dati
+  // storici completi: mescolare una data certa con una dedotta (o un costo parziale) darebbe
+  // un confronto fuorviante. "Confermato" richiede contemporaneamente: date confermate, dati
+  // completi, e nessun contante ancora da riconciliare (realIsProvisional=false) — un viaggio
+  // con contanti da riconciliare finisce tra i provvisori anche se le date sono confermate. I viaggi provvisori restano visibili ma graficamente distinti
+  // (barra tratteggiata) e chiaramente etichettati, mai presentati come certi.
+  var perDayConfirmed = sortedByYear.filter(function(r){ return r.realPerPersonPerDay != null && !r.datesProvisional && !r.incompleteData && !r.realIsProvisional; })
+    .map(function(r){ return { label: r.year + ' · ' + r.name, value: r.realPerPersonPerDay, color:'#4A6FA5', provisional:false }; });
+  var perDayProvisional = sortedByYear.filter(function(r){ return r.realPerPersonPerDay != null && (r.datesProvisional || r.incompleteData || r.realIsProvisional); })
+    .map(function(r){ return { label: r.year + ' · ' + r.name, value: r.realPerPersonPerDay, color:'#4A6FA5', provisional:true }; });
+  var perDayChart;
+  if (!perDayConfirmed.length && !perDayProvisional.length){
+    perDayChart = '<p class="card-sub">Nessun viaggio ha ancora date di partenza/ritorno impostate: aggiungile in Impostazioni per vedere questo confronto.</p>';
+  } else {
+    perDayChart = perDayConfirmed.length ? buildBarCompareSVG(perDayConfirmed) :
+      '<p class="card-sub">Nessun viaggio ha ancora date confermate: il confronto principale è vuoto per non presentare dati provvisori come certi.</p>';
+    if (perDayProvisional.length){
+      perDayChart += '<p class="card-sub" style="margin-top:12px;">Viaggi con date suggerite dai movimenti (da confermare) o dati storici incompleti — <b>confronto provvisorio</b>, esclusi sopra:</p>' + buildBarCompareSVG(perDayProvisional);
+    }
+  }
+
+  return (
+    '<h2 style="font-family:var(--font-display); font-size:24px; margin:0 0 2px;">Panoramica generale</h2>' +
+    '<p class="card-sub" style="margin:0 0 14px;">Tutti i viaggi registrati, messi a confronto</p>' +
+    kpi +
+    '<div class="card"><h2>Andamento storico</h2><p class="card-sub">Costo Reale, Budget Replicabile e Budget Essenziale negli anni</p>' + trendChart + '</div>' +
+    '<div class="card"><h2>Costo per persona al giorno</h2><p class="card-sub">Il confronto più corretto tra viaggi di durata diversa</p>' + perDayChart + '</div>' +
+    '<div class="card"><h2>Tutti i viaggi</h2><div class="table-wrap"><table class="overview-table"><thead>' + thead + '</thead><tbody>' + tbody + '</tbody></table></div></div>'
+  );
+}
+
+/* ============================================================
+   RENDER MASTER
+   ============================================================ */
+function render(){
+  var app = document.getElementById('app');
+  if (state.loading){
+    app.innerHTML = '<div class="boot-loading"><div class="boot-mark">V·S</div><div class="boot-text">Apertura del diario di viaggio…</div></div>';
+    return;
+  }
+  var body;
+  if (!state.trips.length){
+    body = renderEmptyState();
+  } else if (state.view === 'overview'){
+    body = renderOverview();
+  } else if (state.view === 'classify'){
+    body = renderClassifyView();
+  } else {
+    body = renderTripView();
+  }
+  app.innerHTML =
+    '<div class="shell">' +
+      renderHeader() +
+      '<div class="main">' + renderStorageWarning() + body + '</div>' +
+      '<div class="footnote">Funziona interamente offline, nel tuo browser: nessun account, nessun server. Ricorda di esportare un backup ogni tanto.</div>' +
+    '</div>' +
+    renderTripModal() +
+    renderBackupModal() +
+    (state.toast ? '<div class="toast show" id="toast"><span class="dot"></span>' + escapeHtml(state.toast) + '</div>' : '');
+}
+
+/* ============================================================
+   EVENTI
+   ============================================================ */
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-action]');
+  if (!el) return;
+  var action = el.getAttribute('data-action');
+  var id = el.getAttribute('data-id');
+  if (action === 'close-modal-bg' && el !== e.target) return;
+
+  if (action === 'select-trip'){ state.currentTripId = id; state.view='trip'; state.tripTab='dashboard'; state.editingExpenseId=null; state.tableCategoryFilter=''; state.tableNatureFilter=''; render(); }
+  else if (action === 'view-overview'){ state.view='overview'; render(); }
+  else if (action === 'select-trip-tab'){ state.tripTab = el.getAttribute('data-tab'); render(); }
+  else if (action === 'open-new-trip'){ state.showTripModal=true; state.tripModalMode='new'; state.editingTripId=null; render(); }
+  else if (action === 'open-edit-trip'){ state.showTripModal=true; state.tripModalMode='edit'; state.editingTripId=id; render(); }
+  else if (action === 'open-backup-modal'){ state.showBackupModal=true; render(); }
+  else if (action === 'close-modal' || action === 'close-modal-bg'){ state.showTripModal=false; state.showBackupModal=false; render(); }
+  else if (action === 'export-backup'){ doExportBackup(); }
+  else if (action === 'export-all-csv'){ doExportAllCSV(); }
+  else if (action === 'delete-trip'){ deleteTrip(id); }
+  else if (action === 'import-seed'){ importSeedData(); render(); }
+  else if (action === 'edit-expense'){
+    state.editingExpenseId = id; state.tripTab = 'spese'; render();
+    var formEl = document.getElementById('expenseForm');
+    if (formEl && typeof formEl.scrollIntoView === 'function') formEl.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  else if (action === 'cancel-edit-expense'){ state.editingExpenseId = null; render(); }
+  else if (action === 'delete-expense'){
+    if (confirm('Eliminare questa spesa?')) deleteExpense(state.currentTripId, id);
+  }
+  else if (action === 'filter-non-classified'){ state.tripTab='spese'; state.tableNatureFilter='da-classificare'; state.tableCategoryFilter=''; render(); }
+  else if (action === 'export-csv'){
+    var trip = state.trips.find(function(t){ return t.id===state.currentTripId; });
+    if (trip){
+      var csv = expensesToCSV(state.expensesByTrip[trip.id] || []);
+      downloadTextFile('Spese_' + trip.year + '_' + trip.name.replace(/[^a-z0-9]+/gi,'_') + '.csv', csv, 'text/csv;charset=utf-8');
+    }
+  }
+  else if (action === 'copy-receipt'){
+    var pre = document.getElementById('receiptText');
+    var text = pre ? pre.textContent : '';
+    copyToClipboard(text);
+    showToast('Riepilogo copiato negli appunti');
+  }
+  else if (action === 'sort-overview'){
+    var key = el.getAttribute('data-key');
+    if (state.overviewSort.key === key) state.overviewSort.dir = state.overviewSort.dir === 'asc' ? 'desc' : 'asc';
+    else state.overviewSort = { key:key, dir: (key==='name') ? 'asc' : 'desc' };
+    render();
+  }
+  else if (action === 'reconcile-cash'){
+    reconcileCash(state.currentTripId, id, el.getAttribute('data-resolution'));
+  }
+  else if (action === 'open-bulk-classify'){
+    state.view = 'classify'; state.classifySelected = {}; render();
+  }
+  else if (action === 'classify-select-all'){
+    var visibleRows = filteredClassifyRows();
+    var allSelected = visibleRows.length > 0 && visibleRows.every(function(r){ return state.classifySelected[r.e.id]; });
+    if (allSelected){ state.classifySelected = {}; }
+    else { visibleRows.forEach(function(r){ state.classifySelected[r.e.id] = true; }); }
+    render();
+  }
+  else if (action === 'apply-bulk-classify'){ applyBulkClassification(); }
+});
+
+document.addEventListener('change', function(e){
+  if (e.target && e.target.id === 'categorySelect'){
+    var show = e.target.value === '__custom__';
+    var field = document.getElementById('customCategoryField');
+    if (field) field.style.display = show ? '' : 'none';
+  }
+  if (e.target && e.target.id === 'categoryFilter'){ state.tableCategoryFilter = e.target.value; render(); }
+  if (e.target && e.target.id === 'natureFilter'){ state.tableNatureFilter = e.target.value; render(); }
+  if (e.target && e.target.name === 'importMode'){ state.importMode = e.target.value; }
+  if (e.target && e.target.id === 'backupFileInput' && e.target.files && e.target.files[0]){
+    handleImportFile(e.target.files[0]);
+  }
+  if (e.target && e.target.id === 'clFilterTrip'){ state.classifyFilters.tripId = e.target.value; render(); }
+  if (e.target && e.target.id === 'clFilterCategory'){ state.classifyFilters.category = e.target.value; render(); }
+  if (e.target && e.target.id === 'clFilterTiming'){ state.classifyFilters.timing = e.target.value; render(); }
+  if (e.target && e.target.id === 'clFilterNature'){ state.classifyFilters.nature = e.target.value; render(); }
+  if (e.target && e.target.id === 'clBulkNature'){ state.classifyBulk.nature = e.target.value; }
+  if (e.target && e.target.id === 'clBulkTiming'){ state.classifyBulk.timing = e.target.value; }
+  if (e.target && e.target.id === 'clBulkCategory'){ state.classifyBulk.category = e.target.value; }
+  if (e.target && e.target.id === 'clBulkReplicable'){ state.classifyBulk.includeInReplicable = e.target.value; }
+  if (e.target && e.target.classList && e.target.classList.contains('classify-check')){
+    var cid = e.target.getAttribute('data-id');
+    if (e.target.checked) state.classifySelected[cid] = true; else delete state.classifySelected[cid];
+    // aggiorna solo il contatore senza un re-render completo, per non perdere il focus mentre si spuntano più righe
+    var counter = document.getElementById('classifySelectedCount');
+    if (counter) counter.textContent = Object.keys(state.classifySelected).filter(function(k){ return state.classifySelected[k]; }).length;
+  }
+});
+var classifyDescDebounce = null;
+document.addEventListener('input', function(e){
+  if (e.target && e.target.id === 'clFilterDesc'){
+    var val = e.target.value;
+    var cursorPos = e.target.selectionStart;
+    clearTimeout(classifyDescDebounce);
+    classifyDescDebounce = setTimeout(function(){
+      state.classifyFilters.description = val;
+      render();
+      var el = document.getElementById('clFilterDesc');
+      if (el){ el.focus(); try{ el.setSelectionRange(cursorPos, cursorPos); }catch(e){} }
+    }, 250);
+  }
+});
+
+document.addEventListener('submit', function(e){
+  if (e.target && e.target.id === 'expenseForm'){
+    e.preventDefault();
+    var f = e.target;
+    var fd = new FormData(f);
+    var isEditing = !!state.editingExpenseId;
+    var plannedRaw = fd.get('plannedAmount');
+    var amountRaw = fd.get('amount');
+    var replicableRaw = fd.get('includeInReplicable');
+    var hasPlanned = plannedRaw !== '' && plannedRaw != null;
+    var hasAmount = amountRaw !== '' && amountRaw != null;
+    var data = {
+      description: (fd.get('description')||'').trim(),
+      timing: fd.get('timing'),
+      nature: fd.get('nature'),
+      movementType: fd.get('movementType'),
+      includeInReplicable: replicableRaw === 'true' ? true : (replicableRaw === 'false' ? false : null),
+      // Importo Effettivo è opzionale SE esiste un Importo Previsto: permette di salvare voci
+      // "solo a preventivo" (es. prima di partire) senza dover inventare uno zero.
+      amount: hasAmount ? round2(parseFloat(amountRaw)) : null,
+      plannedAmount: hasPlanned ? round2(parseFloat(plannedRaw)) : null,
+      date: fd.get('date') || '',
+      destination: (fd.get('destination')||'').trim(),
+      note: (fd.get('note')||'').trim()
+    };
+    if (isEditing){
+      // Il form NON include un campo "category" in modifica: categoryOriginal non viene mai
+      // toccata qui, resta quella già salvata. Solo categoryNormalized è editabile a parte.
+      data.categoryNormalized = fd.get('categoryNormalized');
+    } else {
+      var category = fd.get('category');
+      if (category === '__custom__') category = (fd.get('customCategory')||'').trim() || 'Altro';
+      data.categoryOriginal = category;
+      data.categoryNormalized = AppStorage.normalizeCategory(category);
+    }
+    if (!data.description || (!hasAmount && !hasPlanned)){
+      showToast('Servono una descrizione e almeno un importo (previsto o effettivo).');
+      return;
+    }
+    addOrUpdateExpense(f.getAttribute('data-trip'), data);
+  }
+  if (e.target && e.target.id === 'tripForm'){
+    e.preventDefault();
+    var fd2 = new FormData(e.target);
+    var data2 = {
+      name: (fd2.get('name')||'').trim() || 'Viaggio senza nome',
+      year: parseInt(fd2.get('year'),10) || new Date().getFullYear(),
+      people: Math.max(1, parseInt(fd2.get('people'),10) || 1),
+      startDate: fd2.get('startDate') || null,
+      endDate: fd2.get('endDate') || null,
+      countries: (fd2.get('countries')||'').trim(),
+      completeness: fd2.get('completeness') || 'non-specificata',
+      notes: (fd2.get('notes')||'').trim()
+    };
+    createOrUpdateTrip(data2);
+  }
+});
+
+function copyToClipboard(text){
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).catch(function(){ fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text){
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+loadAll();
+
+})();
+
+
+</script>
+</body>
+</html>
